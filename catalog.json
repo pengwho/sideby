@@ -1,0 +1,221 @@
+{
+  "cabinets": {
+    "billy80": {
+      "name": "IKEA BILLY 80×28×202",
+      "short": "BILLY 80",
+      "w": 76,
+      "d": 26,
+      "cols": 1,
+      "hs": [
+        26,
+        28,
+        30,
+        32,
+        34,
+        38
+      ]
+    },
+    "billy40": {
+      "name": "IKEA BILLY 40×28×202",
+      "short": "BILLY 40",
+      "w": 36,
+      "d": 26,
+      "cols": 1,
+      "hs": [
+        26,
+        28,
+        30,
+        32,
+        34,
+        38
+      ]
+    },
+    "billyLow": {
+      "name": "IKEA BILLY 80×28×106",
+      "short": "BILLY 80 矮",
+      "w": 76,
+      "d": 26,
+      "cols": 1,
+      "hs": [
+        30,
+        32,
+        36
+      ]
+    },
+    "kallax": {
+      "name": "IKEA KALLAX 2×2",
+      "short": "KALLAX",
+      "w": 33,
+      "d": 37,
+      "cols": 2,
+      "hs": [
+        33,
+        33
+      ]
+    }
+  },
+  "boxes": {
+    "tote": {
+      "name": "附蓋整理箱（上寬下窄）",
+      "tw": 36,
+      "td": 25,
+      "bw": 33,
+      "bd": 22,
+      "h": 13,
+      "hasLid": true,
+      "lw": 36.5,
+      "ld": 25.5,
+      "lh": 1.5,
+      "lidOn": true,
+      "stack": true,
+      "nest": 0.8,
+      "photos": [],
+      "links": {
+        "shopee": "",
+        "coupang": ""
+      },
+      "verified": false
+    },
+    "small": {
+      "name": "小物收納盒（附蓋）",
+      "tw": 20,
+      "td": 15,
+      "bw": 18.5,
+      "bd": 13.5,
+      "h": 10,
+      "hasLid": true,
+      "lw": 20.5,
+      "ld": 15.5,
+      "lh": 1.5,
+      "lidOn": true,
+      "stack": true,
+      "nest": 0.5,
+      "photos": [],
+      "links": {
+        "shopee": "",
+        "coupang": ""
+      },
+      "verified": false
+    },
+    "a4": {
+      "name": "A4 文件盒（直筒附蓋）",
+      "tw": 32,
+      "td": 24.5,
+      "bw": 32,
+      "bd": 24.5,
+      "h": 8,
+      "hasLid": true,
+      "lw": 32.5,
+      "ld": 25,
+      "lh": 1.5,
+      "lidOn": true,
+      "stack": true,
+      "nest": 0.3,
+      "photos": [],
+      "links": {
+        "shopee": "",
+        "coupang": ""
+      },
+      "verified": false
+    },
+    "fabric": {
+      "name": "方形布收納盒（直筒無蓋）",
+      "tw": 31,
+      "td": 31,
+      "bw": 31,
+      "bd": 31,
+      "h": 31,
+      "hasLid": false,
+      "lw": 31,
+      "ld": 31,
+      "lh": 0,
+      "lidOn": false,
+      "stack": false,
+      "nest": 0,
+      "photos": [],
+      "links": {
+        "shopee": "",
+        "coupang": ""
+      },
+      "verified": false
+    }
+  },
+  "combos": [
+    {
+      "id": "billy80-tote",
+      "title": "整理箱放滿整櫃",
+      "cabinet": "billy80",
+      "levels": [
+        "tote",
+        "tote",
+        "tote",
+        "tote",
+        "tote",
+        "tote"
+      ],
+      "note": "上面兩層較矮只能放一層，下面四層可以疊兩層。適合換季衣物、雜物分類。"
+    },
+    {
+      "id": "billy80-mix",
+      "title": "上層小物、下層整理箱",
+      "cabinet": "billy80",
+      "levels": [
+        "small",
+        "small",
+        "small",
+        "tote",
+        "tote",
+        "tote"
+      ],
+      "note": "常拿的小東西放上面三層，大件放下面。小物盒轉 90° 擺，一層可以並排 4 個。"
+    },
+    {
+      "id": "billy80-books-a4",
+      "title": "書本加文件盒",
+      "cabinet": "billy80",
+      "levels": [
+        null,
+        null,
+        null,
+        null,
+        "a4",
+        "a4"
+      ],
+      "note": "上面四層照常放書，最下面兩層用 A4 文件盒收紙本資料，每層疊三層。"
+    },
+    {
+      "id": "billy40-small",
+      "title": "窄櫃小物收納",
+      "cabinet": "billy40",
+      "levels": [
+        "small",
+        "small",
+        "small",
+        "small",
+        "small",
+        "small"
+      ],
+      "note": "BILLY 40 寬度剛好讓小物盒轉向並排兩個，每層疊兩層。"
+    },
+    {
+      "id": "kallax-fabric",
+      "title": "方形布盒一格一個",
+      "cabinet": "kallax",
+      "levels": [
+        "fabric",
+        "fabric"
+      ],
+      "note": "最經典的 KALLAX 用法，一格剛好塞一個布盒。"
+    },
+    {
+      "id": "kallax-small",
+      "title": "小物盒前後兩排",
+      "cabinet": "kallax",
+      "levels": [
+        "small",
+        "small"
+      ],
+      "note": "KALLAX 比較深，小物盒可以前後排兩排再疊兩層，一格放 4 個。後排適合放備品。"
+    }
+  ]
+}

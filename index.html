@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BoxFit 收納擺放模擬</title>
+<meta name="description" content="IKEA BILLY、KALLAX 等櫃子適合放哪些收納盒？3D 模擬每層怎麼擺、能不能疊、要買幾個，附實測尺寸與購買連結。">
+<meta property="og:title" content="BoxFit 收納擺放模擬">
+<meta property="og:description" content="看收納盒放進 BILLY、KALLAX 每層怎麼擺、要買幾個。">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+/* Layout: workbench — combo list (or lab inputs) on the left, 3D stage on the right, shopping list below. Accent = tape-measure yellow. */
+:root{
+  --bg:#EDF0EE; --panel:#FFFFFF; --ink:#1C272A; --muted:#5A686B; --line:#D2D9D6;
+  --accent:#D69A00; --accent-ink:#2E2200; --accent-soft:#FBEFC8;
+  --ok:#2E7D55; --ok-soft:#DDF0E5; --warn:#B8501E; --warn-soft:#F8E3D8;
+  --stage:#E2E7E5; --wood:#F6F5F0; --edge:#1C272A; --boxwarn:#E0873A; --book:#A9B3B1;
+  --box1:#5E979C; --box2:#8B6FA8; --box3:#6E8F4E; --box4:#B07A5B;
+  --sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121819; --panel:#1A2224; --ink:#E4EBE9; --muted:#9AA9AC; --line:#2C3739;
+  --accent:#F0B429; --accent-ink:#2A1E00; --accent-soft:#3A2F12;
+  --ok:#5CC48E; --ok-soft:#173226; --warn:#F08A5D; --warn-soft:#3A2018;
+  --stage:#0E1415; --wood:#D8D5CC; --edge:#0B1112; --boxwarn:#F09A50; --book:#7D8886;
+  --box1:#6FAEB3; --box2:#A68CC2; --box3:#86A866; --box4:#C99373;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121819; --panel:#1A2224; --ink:#E4EBE9; --muted:#9AA9AC; --line:#2C3739;
+  --accent:#F0B429; --accent-ink:#2A1E00; --accent-soft:#3A2F12;
+  --ok:#5CC48E; --ok-soft:#173226; --warn:#F08A5D; --warn-soft:#3A2018;
+  --stage:#0E1415; --wood:#D8D5CC; --edge:#0B1112; --boxwarn:#F09A50; --book:#7D8886;
+  --box1:#6FAEB3; --box2:#A68CC2; --box3:#86A866; --box4:#C99373;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.55}
+.wrap{max-width:1320px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{padding-block:20px 0}
+.brand{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.brand b{font-family:var(--mono);font-weight:600;font-size:26px;letter-spacing:-.5px}
+.brand span{font-size:18px;font-weight:700}
+.labtag{font-size:12px;font-weight:700;color:var(--warn);border:1px solid var(--warn);border-radius:999px;padding:1px 10px}
+.sub{color:var(--muted);margin:4px 0 0;max-width:62ch}
+.ruler{height:14px;margin-top:14px;border-bottom:1px solid var(--ink);
+  background:
+   repeating-linear-gradient(90deg,var(--ink) 0 1px,transparent 1px 50px) bottom/100% 12px no-repeat,
+   repeating-linear-gradient(90deg,var(--ink) 0 1px,transparent 1px 10px) bottom/100% 6px no-repeat;opacity:.55}
+.app{display:grid;gap:20px;padding-block:20px 40px;grid-template-columns:minmax(0,1fr);grid-template-areas:"side" "stage" "res" "tab"}
+.app.lab{grid-template-areas:"stage" "res" "side" "tab"}
+@media (min-width:960px){.app,.app.lab{grid-template-columns:320px minmax(0,1fr);grid-template-areas:"side stage" "side res" "side tab";align-items:start}}
+.side{grid-area:side;display:flex;flex-direction:column;gap:14px;min-width:0}
+.stagecol{grid-area:stage;min-width:0}
+.result{grid-area:res;min-width:0}
+.tables{grid-area:tab;min-width:0;display:flex;flex-direction:column;gap:14px}
+@media (min-width:960px){.side{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;padding-right:4px}}
+
+/* combo list */
+.filters{display:flex;gap:6px;flex-wrap:wrap}
+.fchip{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:4px 12px;cursor:pointer}
+.fchip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.combos{display:flex;flex-direction:column;gap:8px}
+@media (max-width:959px){.combos{flex-direction:row;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x mandatory}.ccard{flex:0 0 250px;scroll-snap-align:start}}
+.ccard{text-align:left;font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px 14px;cursor:pointer;display:flex;flex-direction:column;gap:6px}
+.ccard:hover{border-color:var(--muted)}
+.ccard[aria-current="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+.ccard .cab{font-size:12px;color:var(--muted)}
+.ccard .ttl{font-weight:700;font-size:15px;line-height:1.35}
+.ccard .mix{display:flex;gap:4px 10px;flex-wrap:wrap;font-size:12px}
+.ccard .mix i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:0}
+.ccard .cnt{font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+/* lab inputs */
+fieldset,details.adv{border:1px solid var(--line);background:var(--panel);border-radius:6px;margin:0;padding:12px 14px 14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+legend{font-weight:700;font-size:13px;letter-spacing:.06em;padding:0 6px}
+details.adv{display:block}
+details.adv summary{cursor:pointer;font-weight:700;font-size:13px;letter-spacing:.06em}
+details.adv[open] summary{margin-bottom:10px}
+.stack{display:flex;flex-direction:column;gap:10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px 8px}
+.f{display:flex;flex-direction:column;gap:3px;min-width:0}
+.f label{font-size:12px;color:var(--muted)}
+.unit{position:relative}
+.unit input{padding-right:30px}
+.unit::after{content:attr(data-u);position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--muted);font-family:var(--mono);pointer-events:none}
+input[type=number],input[type=text],select{width:100%;font:inherit;font-family:var(--mono);font-size:14px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:6px 8px;min-width:0}
+input[type=text],select{font-family:var(--sans)}
+input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.sec{font-size:12px;font-weight:700;margin-top:2px;display:flex;align-items:center;gap:6px}
+.sec::after{content:"";flex:1;border-top:1px dashed var(--line)}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer}
+.chk input{width:16px;height:16px;accent-color:var(--accent)}
+.row{display:flex;gap:14px;flex-wrap:wrap}
+.hint{font-size:12px;color:var(--muted);margin:0}
+.levels{display:flex;flex-direction:column;gap:6px}
+.lvrow{display:grid;grid-template-columns:64px minmax(0,1fr) 32px;gap:8px;align-items:center}
+.lvrow span{font-size:12px;color:var(--muted);white-space:nowrap}
+.lvrow.sel span{color:var(--ink);font-weight:700}
+.lvrow.sel input{border-color:var(--accent)}
+.iconbtn{width:32px;height:32px;border:1px solid var(--line);background:var(--bg);color:var(--muted);border-radius:4px;cursor:pointer;font-size:16px;line-height:1}
+.iconbtn:disabled{opacity:.35;cursor:default}
+.btn{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:5px 12px;cursor:pointer}
+.btn.solid{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.addlv{align-self:flex-start}
+
+/* stage */
+.stage{position:relative;background:var(--stage);border:1px solid var(--line);border-radius:6px;height:min(64vh,620px);min-height:380px;overflow:hidden}
+.stage canvas{display:block;width:100%;height:100%;touch-action:none}
+.views{position:absolute;left:10px;top:10px;right:10px;display:flex;gap:6px;flex-wrap:wrap}
+.views button{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:5px 12px;cursor:pointer}
+.views button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+.views .sep{flex:1}
+.legend{position:absolute;left:10px;bottom:10px;display:flex;gap:12px;flex-wrap:wrap;font-size:12px;background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:4px 10px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.nogl{position:absolute;inset:0;display:grid;place-items:center;padding:20px;text-align:center;color:var(--muted)}
+
+/* result */
+.result{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px;display:flex;flex-direction:column;gap:14px}
+.rhead{display:flex;flex-direction:column;gap:4px}
+.rhead .cab{font-size:12px;color:var(--muted)}
+.rhead h2{margin:0;font-size:20px;text-wrap:balance}
+.rhead p{margin:0;color:var(--muted);max-width:70ch}
+.total{font-size:15px}
+.total b{font-family:var(--mono);font-size:24px;background:var(--accent-soft);padding:0 8px;border-radius:3px;font-variant-numeric:tabular-nums}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:12px;border-radius:999px;padding:3px 10px;border:1px solid var(--line);background:var(--bg)}
+.chip.ok{background:var(--ok-soft);border-color:transparent;color:var(--ok);font-weight:700}
+.chip.warn{background:var(--warn-soft);border-color:transparent;color:var(--warn);font-weight:700}
+.notes{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.notes li{padding-left:16px;position:relative;max-width:75ch}
+.notes li::before{content:"";position:absolute;left:2px;top:.62em;width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.notes li.w::before{background:var(--warn)}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:500;color:var(--muted);white-space:nowrap}
+td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+td i.sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px}
+thead th{font-size:12px;letter-spacing:.04em;border-bottom:1px solid var(--ink)}
+tbody tr.bad td{color:var(--warn)}
+tbody tr.sel td{background:var(--accent-soft)}
+.lvtable tbody tr{cursor:pointer}
+
+/* shopping list */
+.shop h3{margin:0 0 10px;font-size:15px}
+.items{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.item{border:1px solid var(--line);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;background:var(--panel)}
+.photo{aspect-ratio:4/3;max-width:100%;background:var(--bg);display:grid;place-items:center;color:var(--muted);font-size:12px;border-bottom:1px solid var(--line);position:relative;text-align:center;padding:10px}
+.photo img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.photo .sw{position:absolute;left:10px;top:10px;width:14px;height:14px;border-radius:3px}
+.ibody{padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
+.iname{font-weight:700}
+.ispec{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.iqty{font-size:13px}
+.iqty b{font-family:var(--mono);font-size:16px}
+.buys{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto;padding-top:4px}
+.buy{font-size:13px;font-weight:700;text-decoration:none;border-radius:4px;padding:6px 12px;border:1px solid var(--ink);color:var(--ink)}
+.buy.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.buy.off{border-style:dashed;border-color:var(--line);color:var(--muted);font-weight:500;cursor:default}
+.badge{font-size:11px;border-radius:999px;padding:1px 8px;align-self:flex-start}
+.badge.v{background:var(--ok-soft);color:var(--ok);font-weight:700}
+.badge.c{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px}
+.card h2{font-size:15px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.copied{font-size:12px;color:var(--ok)}
+.foot{font-size:12px;color:var(--muted);max-width:75ch;margin:0}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><b>BoxFit</b><span>收納擺放模擬</span><span class="labtag" id="labTag" hidden>測試模式</span></div>
+    <p class="sub" id="subline">挑一個櫃子和收納盒的組合，看每層怎麼擺、要買幾個。尺寸單位都是公分。</p>
+    <div class="ruler" aria-hidden="true"></div>
+  </div>
+</header>
+
+<main class="wrap app" id="app">
+  <!-- 推薦組合 -->
+  <aside class="side" id="comboSide">
+    <div class="filters" id="filters" role="group" aria-label="依櫃子篩選"></div>
+    <div class="combos" id="combos"></div>
+  </aside>
+
+  <!-- 測試模式（網址加 #lab 才會出現） -->
+  <aside class="side" id="labSide" hidden>
+    <fieldset>
+      <legend>櫃子</legend>
+      <div class="f"><label for="cabPreset">櫃型</label><select id="cabPreset"></select></div>
+      <div class="grid3">
+        <div class="f"><label for="cw">內寬</label><div class="unit" data-u="cm"><input id="cw" type="number" step="0.1" min="5"></div></div>
+        <div class="f"><label for="cd">內深</label><div class="unit" data-u="cm"><input id="cd" type="number" step="0.1" min="5"></div></div>
+        <div class="f"><label for="ccols">欄數</label><input id="ccols" type="number" step="1" min="1" max="6"></div>
+      </div>
+      <div class="sec">每層淨高（由上往下）</div>
+      <div class="levels" id="levels"></div>
+      <button type="button" class="btn addlv" id="addLv">＋ 加一層</button>
+    </fieldset>
+    <fieldset>
+      <legend>收納盒</legend>
+      <div class="f"><label for="boxPreset">盒子</label><select id="boxPreset"></select></div>
+      <div class="f"><label for="bname">名稱</label><input id="bname" type="text"></div>
+      <div class="sec">上緣外尺寸</div>
+      <div class="grid2">
+        <div class="f"><label for="btw">寬</label><div class="unit" data-u="cm"><input id="btw" type="number" step="0.1" min="1"></div></div>
+        <div class="f"><label for="btd">深</label><div class="unit" data-u="cm"><input id="btd" type="number" step="0.1" min="1"></div></div>
+      </div>
+      <div class="sec">底部外尺寸與高度</div>
+      <div class="grid3">
+        <div class="f"><label for="bbw">底寬</label><div class="unit" data-u="cm"><input id="bbw" type="number" step="0.1" min="1"></div></div>
+        <div class="f"><label for="bbd">底深</label><div class="unit" data-u="cm"><input id="bbd" type="number" step="0.1" min="1"></div></div>
+        <div class="f"><label for="bh">盒高</label><div class="unit" data-u="cm"><input id="bh" type="number" step="0.1" min="1"></div></div>
+      </div>
+      <div class="row">
+        <label class="chk"><input id="bhasLid" type="checkbox">有蓋子</label>
+        <label class="chk"><input id="bstack" type="checkbox">可以堆疊</label>
+      </div>
+      <div id="lidbox" class="stack">
+        <div class="grid3">
+          <div class="f"><label for="blw">蓋寬</label><div class="unit" data-u="cm"><input id="blw" type="number" step="0.1" min="1"></div></div>
+          <div class="f"><label for="bld">蓋深</label><div class="unit" data-u="cm"><input id="bld" type="number" step="0.1" min="1"></div></div>
+          <div class="f"><label for="blh">蓋高</label><div class="unit" data-u="cm"><input id="blh" type="number" step="0.1" min="0"></div></div>
+        </div>
+        <label class="chk"><input id="blidOn" type="checkbox">放進櫃子時蓋著</label>
+      </div>
+      <div class="f"><label for="bnest">疊放嵌入深度</label><div class="unit" data-u="cm"><input id="bnest" type="number" step="0.1" min="0"></div></div>
+    </fieldset>
+    <details class="adv">
+      <summary>進階設定</summary>
+      <div class="stack">
+        <div class="grid2">
+          <div class="f"><label for="cover">允許凸出櫃外</label><div class="unit" data-u="cm"><input id="cover" type="number" step="0.5" min="0"></div></div>
+          <div class="f"><label for="gap">盒間距</label><div class="unit" data-u="cm"><input id="gap" type="number" step="0.1" min="0"></div></div>
+          <div class="f"><label for="sgap">左右總餘裕</label><div class="unit" data-u="cm"><input id="sgap" type="number" step="0.1" min="0"></div></div>
+          <div class="f"><label for="tgap">上方取放空間</label><div class="unit" data-u="cm"><input id="tgap" type="number" step="0.1" min="0"></div></div>
+          <div class="f"><label for="orient">擺放方向</label><select id="orient"><option value="auto">自動</option><option value="0">正放</option><option value="1">轉 90°</option></select></div>
+        </div>
+      </div>
+    </details>
+    <div class="card">
+      <h2><span>存成組合資料</span></h2>
+      <p class="hint">測好之後按這裡，會複製一段資料，把 box 加進 catalog.json 的 boxes、combo 加進 combos，就會變成新的推薦組合。</p>
+      <p style="margin:10px 0 0"><button type="button" class="btn solid" id="exportBtn">複製組合資料</button> <span class="copied" id="exported" hidden>已複製</span></p>
+    </div>
+  </aside>
+
+  <section class="stagecol">
+    <div class="stage" id="stage">
+      <div class="views" role="group" aria-label="視角">
+        <button type="button" data-view="angle" aria-pressed="true">斜角</button>
+        <button type="button" data-view="front" aria-pressed="false">正面</button>
+        <button type="button" data-view="side" aria-pressed="false">側面</button>
+        <button type="button" data-view="cell" aria-pressed="false">單層特寫</button>
+        <span class="sep"></span>
+        <button type="button" id="dimToggle" aria-pressed="true">剩餘尺寸</button>
+      </div>
+      <div class="legend" aria-hidden="true">
+        <span><i style="background:var(--accent)"></i>剩餘空間</span>
+        <span><i style="background:var(--book)"></i>放書</span>
+        <span><i style="background:var(--boxwarn)"></i>凸出櫃外</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="result" id="result" aria-live="polite"></section>
+
+  <section class="tables" id="tables"></section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+/* 商品、櫃子、推薦組合的資料都在 catalog.json，新增商品只要改那個檔案。 */
+
+
+(async function(){
+let CATALOG;
+try{const r=await fetch('catalog.json',{cache:'no-cache'});if(!r.ok)throw new Error(r.status);CATALOG=await r.json();}
+catch(e){document.getElementById('result').textContent='組合資料載入失敗，請重新整理頁面。';console.error(e);return;}
+const MAXLV=10;
+const DEF={over:0,gap:0.5,sgap:1,tgap:1};
+const BOXCOL=['--box1','--box2','--box3','--box4'];
+const $=id=>document.getElementById(id);
+const num=id=>{const v=parseFloat($(id).value);return isFinite(v)?v:0;};
+const f1=n=>{const r=Math.round(n*10)/10;return (Object.is(r,-0)?0:r).toString();};
+const esc=s=>String(s).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#888';
+const isLab=()=>location.hash==='#lab';
+const boxIds=Object.keys(CATALOG.boxes);
+const colorVar=id=>BOXCOL[Math.max(0,boxIds.indexOf(id))%BOXCOL.length]||'--box1';
+
+/* ---------- math ---------- */
+function layout(c,b,o,h){
+  const lid=b.hasLid&&b.lidOn;
+  const fw0=Math.max(b.tw,b.bw,lid?b.lw:0),fd0=Math.max(b.td,b.bd,lid?b.ld:0);
+  const fw=o?fd0:fw0,fd=o?fw0:fd0;
+  const unitH=b.h+(lid?b.lh:0);
+  const tapered=(b.tw-b.bw>0.05)||(b.td-b.bd>0.05);
+  const nestBlock=b.stack&&tapered&&!lid,canStack=b.stack&&!nestBlock;
+  const pitch=Math.max(0.5,unitH-(canStack?b.nest:0));
+  const g=c.gap,aW=c.w-c.sgap,aD=c.d+c.over,aH=h-c.tgap,e=1e-9;
+  const fit=(a,s)=>(s>0&&s<=a+e)?Math.floor((a+g+e)/(s+g)):0;
+  const cols=fit(aW,fw),rows=fit(aD,fd);
+  let layers=0;if(unitH>0&&unitH<=aH+e)layers=canStack?Math.floor((aH-unitH+e)/pitch)+1:1;
+  const per=cols*rows*layers;
+  const usedW=cols?cols*fw+(cols-1)*g:0,usedD=rows?rows*fd+(rows-1)*g:0,usedH=layers?unitH+(layers-1)*pitch:0;
+  return{o,h,fw,fd,unitH,pitch,cols,rows,layers,per,usedW,usedD,usedH,lid,tapered,nestBlock,canStack,
+    leftW:c.w-usedW,leftD:Math.max(0,c.d-usedD),leftH:h-usedH,protrude:Math.max(0,usedD-c.d),
+    failW:fw>aW+e,failD:fd>aD+e,failH:unitH>aH+e};
+}
+/* 每層放哪個盒子 → 每個盒子種類挑一個最好的方向 */
+function planLevels(c,levelBoxes,boxOf,mode){
+  const ori={};
+  [...new Set(levelBoxes.filter(Boolean))].forEach(id=>{
+    const b=boxOf(id),idx=levelBoxes.map((x,i)=>x===id?i:-1).filter(i=>i>=0);
+    const tot=o=>idx.reduce((s,i)=>s+layout(c,b,o,c.hs[i]).per,0);
+    const pro=o=>layout(c,b,o,Math.max(...idx.map(i=>c.hs[i]))).protrude;
+    if(mode==='0'||mode==='1'){ori[id]=+mode;return;}
+    const A=tot(0),B=tot(1);ori[id]=(B>A||(B===A&&B>0&&pro(1)<pro(0)))?1:0;
+    ori[id+'_alt']=Math.abs(A-B)*c.cols;
+  });
+  return c.hs.map((h,i)=>{const id=levelBoxes[i];if(!id)return{h,id:null};const b=boxOf(id);return{h,id,b,L:layout(c,b,ori[id],h)};});
+}
+const sumQty=(lv,c)=>{const q={};lv.forEach(x=>{if(x.id)q[x.id]=(q[x.id]||0)+x.L.per*c.cols;});return q;};
+function bodyVol(b){const am=((b.tw+b.bw)/2)*((b.td+b.bd)/2);return b.h/6*(b.tw*b.td+b.bw*b.bd+4*am);}
+function spec(b){return `上 ${f1(b.tw)}×${f1(b.td)}／底 ${f1(b.bw)}×${f1(b.bd)}／高 ${f1(b.h)}${b.hasLid?`／蓋高 ${f1(b.lh)}`:''}`;}
+
+/* ---------- state ---------- */
+let comboId=CATALOG.combos[0].id, filter='all', sel=-1;
+function settings(){return{over:Math.max(0,num('cover')),gap:Math.max(0,num('gap')),sgap:Math.max(0,num('sgap')),tgap:Math.max(0,num('tgap'))};}
+
+/* ---------- combo mode ---------- */
+function drawFilters(){
+  const used=[...new Set(CATALOG.combos.map(k=>typeof k.cabinet==='string'?k.cabinet:null).filter(Boolean))];
+  const opts=[['all','全部'],...used.map(k=>[k,CATALOG.cabinets[k].short])];
+  $('filters').innerHTML=opts.map(([k,t])=>`<button type="button" class="fchip" data-f="${k}" aria-pressed="${k===filter}">${esc(t)}</button>`).join('');
+  $('filters').querySelectorAll('button').forEach(bt=>bt.addEventListener('click',()=>{filter=bt.dataset.f;drawFilters();drawCombos();}));
+}
+function comboCab(k){const base=typeof k.cabinet==='string'?CATALOG.cabinets[k.cabinet]:k.cabinet;return Object.assign({},base,{hs:(k.hs||base.hs).slice()});}
+function comboPlan(k){const cab=comboCab(k);const c=Object.assign({},cab,settings());return{c,cab,lv:planLevels(c,k.levels,id=>CATALOG.boxes[id],'auto')};}
+function drawCombos(){
+  const list=CATALOG.combos.filter(k=>filter==='all'||k.cabinet===filter);
+  $('combos').innerHTML=list.map(k=>{
+    const {c,cab,lv}=comboPlan(k),q=sumQty(lv,c);
+    const mix=Object.keys(q).map(id=>`<span><i style="background:var(${colorVar(id)})"></i>${esc(CATALOG.boxes[id].name.replace(/（.*）/,''))} ×${q[id]}</span>`).join('');
+    const books=lv.filter(x=>!x.id).length;
+    return `<button type="button" class="ccard" data-id="${k.id}" aria-current="${k.id===comboId}">
+      <span class="cab">${esc(cab.name)}</span><span class="ttl">${esc(k.title)}</span>
+      <span class="mix">${mix}${books?`<span><i style="background:var(--book)"></i>放書 ${books} 層</span>`:''}</span></button>`;
+  }).join('');
+  $('combos').querySelectorAll('.ccard').forEach(bt=>bt.addEventListener('click',()=>{comboId=bt.dataset.id;sel=-1;drawCombos();render();setView('angle');}));
+}
+function levelTable(lv,c,labelBox){
+  return `<div class="tw"><table class="lvtable"><thead><tr><th>層</th><th>淨高</th>${labelBox?'<th>放什麼</th>':''}<th>左右×前後×疊</th><th>數量${c.cols>1?`（${c.cols} 欄）`:''}</th><th>上方剩</th></tr></thead><tbody>${
+    lv.map((x,i)=>{
+      if(!x.id) return `<tr class="${i===sel?'sel':''}" data-lv="${i}"><td>第 ${i+1} 層</td><td class="n">${f1(x.h)}</td>${labelBox?'<td><i class="sw" style="background:var(--book)"></i>放書</td>':''}<td class="n">–</td><td class="n">–</td><td class="n">–</td></tr>`;
+      const L=x.L,fitTxt=L.per?`${L.cols} × ${L.rows} × ${L.layers}`:(L.failH?`太矮（需 ${f1(L.unitH+c.tgap)}）`:'放不下');
+      return `<tr class="${L.per?'':'bad'} ${i===sel?'sel':''}" data-lv="${i}"><td>第 ${i+1} 層</td><td class="n">${f1(x.h)}</td>${labelBox?`<td><i class="sw" style="background:var(${colorVar(x.id)})"></i>${esc(x.b.name.replace(/（.*）/,''))}</td>`:''}<td class="n">${fitTxt}</td><td class="n">${L.per*c.cols}</td><td class="n">${L.per?f1(L.leftH):'–'}</td></tr>`;
+    }).join('')}</tbody></table></div>`;
+}
+function bindRows(){
+  $('result').querySelectorAll('tr[data-lv]').forEach(tr=>tr.addEventListener('click',()=>{sel=+tr.dataset.lv;render();setView('cell');}));
+}
+function renderCombo(){
+  const k=CATALOG.combos.find(x=>x.id===comboId)||CATALOG.combos[0];
+  const {c,cab,lv}=comboPlan(k),q=sumQty(lv,c),total=Object.values(q).reduce((a,b)=>a+b,0);
+  const bad=lv.filter(x=>x.id&&x.L.per===0).length, pro=lv.some(x=>x.id&&x.L.protrude>0);
+  const ids=Object.keys(q), allVerified=ids.length&&ids.every(id=>CATALOG.boxes[id].verified);
+  const chips=[bad?['warn',`${bad} 層放不下`]:pro?['warn','部分會凸出櫃外']:['ok','每層都放得下'],
+    allVerified?['ok','已實際買來放過']:['','尺寸計算，尚未實測']];
+  $('result').innerHTML=`
+    <div class="rhead"><span class="cab">${esc(cab.name)}</span><h2>${esc(k.title)}</h2>${k.note?`<p>${esc(k.note)}</p>`:''}</div>
+    <div class="total">這個組合總共要買 <b>${total}</b> 個收納盒</div>
+    <div class="chips">${chips.map(([t,s])=>`<span class="chip ${t}">${s}</span>`).join('')}</div>
+    ${levelTable(lv,c,true)}`;
+  bindRows();
+  const items=ids.map(id=>{
+    const b=CATALOG.boxes[id],ph=b.photos&&b.photos[0];
+    const link=(u,label,primary)=>u?`<a class="buy ${primary?'primary':''}" href="${esc(u)}" target="_blank" rel="noopener sponsored">${label}</a>`:`<span class="buy off">${label}連結待補</span>`;
+    return `<div class="item">
+      <div class="photo"><span class="sw" style="background:var(${colorVar(id)})"></span>${ph?`<img src="${esc(ph)}" alt="${esc(b.name)} 實拍">`:'實拍照片待補'}</div>
+      <div class="ibody">
+        <span class="badge ${b.verified?'v':'c'}">${b.verified?'已實測':'尺寸計算'}</span>
+        <span class="iname">${esc(b.name)}</span>
+        <span class="ispec">${spec(b)}</span>
+        <span class="iqty">這個組合需要 <b>${q[id]}</b> 個</span>
+        <div class="buys">${link(b.links&&b.links.shopee,'蝦皮',true)}${link(b.links&&b.links.coupang,'酷澎',false)}</div>
+      </div></div>`;}).join('');
+  $('tables').innerHTML=`
+    <div class="card shop"><h3>購買清單</h3><div class="items">${items}</div></div>
+    <p class="foot">購買連結為分潤連結，透過連結購買，本站可能獲得分潤，不影響你的購買價格。櫃子與盒子尺寸目前為示意值，購買前請量一下自家櫃子的層高。</p>`;
+  build(c,lv);
+}
+
+/* ---------- lab mode ---------- */
+let hs=[];
+const LABCAB=Object.assign({},CATALOG.cabinets,{custom:{name:'自訂櫃子',w:60,d:30,cols:1,hs:[30,30,30]}});
+const LABBOX=Object.assign({},CATALOG.boxes,{custom:{name:'自訂收納盒',tw:30,td:20,bw:28,bd:18,h:15,hasLid:false,lw:30.5,ld:20.5,lh:1.5,lidOn:false,stack:false,nest:0}});
+function fillSelect(s,obj){for(const k in obj){const o=document.createElement('option');o.value=k;o.textContent=obj[k].name;s.appendChild(o);}}
+fillSelect($('cabPreset'),LABCAB);fillSelect($('boxPreset'),LABBOX);
+function drawLevels(){
+  const box=$('levels');box.innerHTML='';
+  hs.forEach((h,i)=>{
+    const r=document.createElement('div');r.className='lvrow'+(i===sel?' sel':'');
+    r.innerHTML=`<span>第 ${i+1} 層</span><div class="unit" data-u="cm"><input id="lv${i}" type="number" step="0.1" min="3" value="${h}" aria-label="第 ${i+1} 層淨高"></div>
+      <button type="button" class="iconbtn" aria-label="刪除第 ${i+1} 層" ${hs.length<=1?'disabled':''}>×</button>`;
+    const inp=r.querySelector('input');
+    inp.addEventListener('input',()=>{const v=parseFloat(inp.value);hs[i]=isFinite(v)?v:0;$('cabPreset').value='custom';schedule();});
+    inp.addEventListener('focus',()=>{sel=i;document.querySelectorAll('.lvrow').forEach((x,k)=>x.classList.toggle('sel',k===i));render();if(curView==='cell')setView('cell');});
+    r.querySelector('button').addEventListener('click',()=>{hs.splice(i,1);if(sel>=hs.length)sel=hs.length-1;$('cabPreset').value='custom';drawLevels();render();setView(curView);});
+    box.appendChild(r);
+  });
+  $('addLv').disabled=hs.length>=MAXLV;
+}
+$('addLv').addEventListener('click',()=>{if(hs.length>=MAXLV)return;hs.push(hs[hs.length-1]||30);$('cabPreset').value='custom';drawLevels();render();setView(curView);});
+function applyCab(k){const c=LABCAB[k];$('cw').value=c.w;$('cd').value=c.d;$('ccols').value=c.cols;hs=c.hs.slice();sel=-1;drawLevels();}
+function applyBox(k){const b=LABBOX[k];$('bname').value=b.name;$('btw').value=b.tw;$('btd').value=b.td;$('bbw').value=b.bw;$('bbd').value=b.bd;$('bh').value=b.h;
+  $('bhasLid').checked=b.hasLid;$('blidOn').checked=b.lidOn;$('blw').value=b.lw;$('bld').value=b.ld;$('blh').value=b.lh;$('bstack').checked=b.stack;$('bnest').value=b.nest;}
+$('cabPreset').value='billy80';applyCab('billy80');$('boxPreset').value='tote';applyBox('tote');
+$('cover').value=DEF.over;$('gap').value=DEF.gap;$('sgap').value=DEF.sgap;$('tgap').value=DEF.tgap;
+function readLabCab(){return Object.assign({w:num('cw'),d:num('cd'),cols:Math.max(1,Math.min(6,Math.round(num('ccols'))||1)),hs:hs.map(h=>Math.max(0,h))},settings());}
+function readLabBox(){const hasLid=$('bhasLid').checked;return{name:$('bname').value.trim()||'收納盒',tw:num('btw'),td:num('btd'),bw:num('bbw'),bd:num('bbd'),h:num('bh'),
+  hasLid,lidOn:hasLid&&$('blidOn').checked,lw:num('blw'),ld:num('bld'),lh:Math.max(0,num('blh')),stack:$('bstack').checked,nest:Math.max(0,num('bnest'))};}
+function renderLab(){
+  const c=readLabCab(),b=readLabBox(),lv=planLevels(c,c.hs.map(()=>'lab'),()=>b,$('orient').value);
+  const q=sumQty(lv,c).lab||0,K=layout(c,b,lv[0].L.o,Math.max(...c.hs,0));
+  const notes=[];
+  if(K.failW)notes.push(['w',`盒子最寬 ${f1(K.fw)} cm，格子左右只有 ${f1(c.w-c.sgap)} cm 可用。`]);
+  if(K.failD)notes.push(['w',`盒子深 ${f1(K.fd)} cm，比內深多 ${f1(K.fd-c.d)} cm。`]);
+  if(K.nestBlock)notes.push(['w','上寬下窄又沒蓋著，疊上去會套進下面那盒，所以不堆疊。']);
+  if(!K.failW&&!K.failD)notes.push(['',`每層左右 ${K.cols} 個、前後 ${K.rows} 排，方向：${K.o?'轉 90°':'正放'}。`]);
+  $('result').innerHTML=`
+    <div class="rhead"><span class="cab">測試模式</span><h2>${esc(b.name)}</h2></div>
+    <div class="total">全櫃共 <b>${q}</b> 盒</div>
+    ${levelTable(lv,c,false)}
+    <ul class="notes">${notes.map(([k,t])=>`<li class="${k}">${t}</li>`).join('')}</ul>`;
+  bindRows();
+  const rows=[['上緣外尺寸',`${f1(b.tw)} × ${f1(b.td)}`],['底部外尺寸',`${f1(b.bw)} × ${f1(b.bd)}`],['盒高',f1(b.h)],
+    ['蓋子',b.hasLid?`${f1(b.lw)} × ${f1(b.ld)} × ${f1(b.lh)}`:'無'],['蓋著的總高',b.hasLid?f1(b.h+b.lh):'–'],
+    ['單邊內縮',K.tapered?f1(Math.max(b.tw-b.bw,b.td-b.bd)/2):'0（直筒）'],['每多疊一層增加',K.canStack?f1(K.pitch):'不可堆疊'],
+    ['外部體積估算（公升）',f1(bodyVol(b)/1000)],['各層淨高（上→下）',c.hs.map(f1).join('／')]];
+  $('tables').innerHTML=`<div class="card"><h2><span>尺寸表</span></h2><div class="tw"><table><thead><tr><th>項目</th><th>數值（cm）</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r[0]}</td><td class="n">${r[1]}</td></tr>`).join('')}</tbody></table></div></div>`;
+  build(c,lv,{lab:'--box1'});
+}
+$('exportBtn').addEventListener('click',()=>{
+  const c=readLabCab(),b=readLabBox(),id='box'+Date.now().toString(36).slice(-4);
+  const out={box:Object.assign({id},b,{photos:[],links:{shopee:'',coupang:''},verified:false}),
+    combo:{id:'combo-'+id,title:'（填組合名稱）',cabinet:$('cabPreset').value!=='custom'?$('cabPreset').value:{name:'（填櫃子名稱）',short:'',w:c.w,d:c.d,cols:c.cols,hs:c.hs},
+      hs:c.hs,levels:c.hs.map(()=>id),note:''}};
+  const t=JSON.stringify(out,null,2),done=()=>{$('exported').hidden=false;setTimeout(()=>$('exported').hidden=true,1600);};
+  try{navigator.clipboard.writeText(t).then(done,()=>fallback(t,done));}catch(e){fallback(t,done);}
+});
+function fallback(t,done){const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done();}catch(e){}ta.remove();}
+
+/* ---------- 3D ---------- */
+const stage=$('stage');
+let renderer,scene,camera,controls,group,mats,labels=[],dims=null,showDims=true;
+function initGL(){
+  if(!window.THREE||!THREE.OrbitControls)return false;
+  try{renderer=new THREE.WebGLRenderer({antialias:true});}catch(e){return false;}
+  renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
+  stage.insertBefore(renderer.domElement,stage.firstChild);
+  scene=new THREE.Scene();camera=new THREE.PerspectiveCamera(35,1,1,6000);
+  scene.add(new THREE.HemisphereLight(0xffffff,0x667777,0.75));
+  const dl=new THREE.DirectionalLight(0xffffff,0.65);dl.position.set(120,260,220);scene.add(dl);
+  const dl2=new THREE.DirectionalLight(0xffffff,0.25);dl2.position.set(-200,80,-100);scene.add(dl2);
+  mats={wood:new THREE.MeshStandardMaterial({roughness:.85}),
+    side:new THREE.MeshStandardMaterial({roughness:.85,transparent:true,opacity:.25,depthWrite:false}),
+    warn:new THREE.MeshStandardMaterial({roughness:.6}),book:new THREE.MeshStandardMaterial({roughness:.9}),
+    edge:new THREE.LineBasicMaterial({transparent:true,opacity:.55}),woodEdge:new THREE.LineBasicMaterial({transparent:true,opacity:.25}),
+    dim:new THREE.LineBasicMaterial({depthTest:false,transparent:true}),dimWarn:new THREE.LineBasicMaterial({depthTest:false,transparent:true}),
+    selEdge:new THREE.LineBasicMaterial({depthTest:false,transparent:true,opacity:.9})};
+  colorize();
+  group=new THREE.Group();scene.add(group);
+  controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.12;
+  new ResizeObserver(resize).observe(stage);resize();
+  (function loop(){requestAnimationFrame(loop);controls.update();renderer.render(scene,camera);})();
+  return true;
+}
+function colorize(){
+  scene.background=new THREE.Color(css('--stage'));
+  mats.wood.color.set(css('--wood'));mats.side.color.set(css('--wood'));mats.warn.color.set(css('--boxwarn'));mats.book.color.set(css('--book'));
+  mats.edge.color.set(css('--edge'));mats.woodEdge.color.set(css('--edge'));
+  mats.dim.color.set(css('--accent'));mats.dimWarn.color.set(css('--warn'));mats.selEdge.color.set(css('--accent'));
+}
+function resize(){const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();scaleLabels();}
+function scaleLabels(){if(!camera)return;const p=camera.projectionMatrix.elements[5]||3,hp=stage.clientHeight||500,s=22/hp*2/p;labels.forEach(sp=>sp.scale.set(s*sp.userData.aspect,s,1));}
+function taper(tw,td,bw,bd,h){
+  const g=new THREE.BoxGeometry(1,1,1),p=g.attributes.position;
+  for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i),top=y>0;p.setXYZ(i,Math.sign(x)*(top?tw:bw)/2,top?h:0,Math.sign(z)*(top?td:bd)/2);}
+  g.computeVertexNormals();return g;
+}
+function addMesh(geo,mat,x,y,z,edgeMat){
+  const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);group.add(m);
+  const l=new THREE.LineSegments(new THREE.EdgesGeometry(geo),edgeMat||mats.edge);l.position.copy(m.position);group.add(l);
+}
+function makeLabel(text,pos,warn){
+  const fs=44,cv=document.createElement('canvas'),ctx=cv.getContext('2d');
+  const font=`600 ${fs}px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif`;
+  ctx.font=font;const tw=ctx.measureText(text).width;cv.width=Math.ceil(tw+fs*0.9);cv.height=Math.ceil(fs*1.55);
+  ctx.font=font;const r=cv.height/2;
+  ctx.beginPath();ctx.moveTo(r,2);ctx.lineTo(cv.width-r,2);ctx.arc(cv.width-r,r,r-2,-Math.PI/2,Math.PI/2);ctx.lineTo(r,cv.height-2);ctx.arc(r,r,r-2,Math.PI/2,Math.PI*1.5);ctx.closePath();
+  ctx.fillStyle=warn?css('--panel'):css('--accent');ctx.fill();
+  if(warn){ctx.lineWidth=4;ctx.strokeStyle=css('--warn');ctx.stroke();}
+  ctx.fillStyle=warn?css('--warn'):css('--accent-ink');ctx.textBaseline='middle';ctx.textAlign='center';ctx.fillText(text,cv.width/2,cv.height/2+2);
+  const tex=new THREE.CanvasTexture(cv);tex.minFilter=THREE.LinearFilter;
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,depthTest:false,sizeAttenuation:false,transparent:true}));
+  sp.renderOrder=1000;sp.userData.aspect=cv.width/cv.height;sp.position.copy(pos);group.add(sp);labels.push(sp);
+}
+function dimLine(a,b,text,warn,at){
+  const v=new THREE.Vector3().subVectors(b,a);if(v.length()<0.05)return;
+  const vert=Math.abs(v.y)>Math.max(Math.abs(v.x),Math.abs(v.z));
+  const tk=(vert?new THREE.Vector3(1,0,0):new THREE.Vector3(0,1,0)).multiplyScalar(1.2);
+  const geo=new THREE.BufferGeometry().setFromPoints([a,b,a.clone().add(tk),a.clone().sub(tk),b.clone().add(tk),b.clone().sub(tk)]);
+  const ln=new THREE.LineSegments(geo,warn?mats.dimWarn:mats.dim);ln.renderOrder=999;group.add(ln);
+  makeLabel(text,at||a.clone().add(b).multiplyScalar(.5),warn);
+}
+function clearGroup(){labels=[];while(group.children.length){const o=group.children.pop();o.geometry&&o.geometry.dispose();if(o.isSprite){o.material.map.dispose();o.material.dispose();}}
+  boxMats.forEach(m=>m.dispose());boxMats=[];}
+let boxMats=[];
+function matFor(varName,dark){const m=new THREE.MeshStandardMaterial({roughness:dark?.5:.6});m.color.set(css(varName));if(dark)m.color.multiplyScalar(.72);boxMats.push(m);return m;}
+
+let firstBuild=true;
+function build(c,lv,colorMap){
+  if(!renderer)return;
+  clearGroup();
+  const t=1.8,nc=c.cols,n=c.hs.length,D=c.d;
+  const W=nc*c.w+(nc+1)*t,H=c.hs.reduce((s,h)=>s+h+t,0)+t;
+  const floors=[];let y=t;for(let i=n-1;i>=0;i--){floors[i]=y;y+=c.hs[i]+t;}
+  for(let i=0;i<n;i++)addMesh(new THREE.BoxGeometry(W,t,D),mats.wood,0,floors[i]-t/2,0,mats.woodEdge);
+  addMesh(new THREE.BoxGeometry(W,t,D),mats.wood,0,H-t/2,0,mats.woodEdge);
+  for(let j=0;j<=nc;j++){const outer=(j===0||j===nc);addMesh(new THREE.BoxGeometry(t,H,D),outer?mats.side:mats.wood,-W/2+t/2+j*(c.w+t),H/2,0,mats.woodEdge);}
+  addMesh(new THREE.BoxGeometry(W,H,0.4),mats.wood,0,H/2,-D/2-0.2,mats.woodEdge);
+
+  const cache={};
+  const geoFor=(id,b,o,lidOn)=>{const key=id+'_'+o;if(cache[key])return cache[key];
+    const sw=o?(x=>[x[1],x[0]]):(x=>x);const[tw,td]=sw([b.tw,b.td]),[bw,bd]=sw([b.bw,b.bd]),[lw,ld]=sw([b.lw,b.ld]);
+    const cv=(colorMap&&colorMap[id])||colorVar(id);
+    return cache[key]={body:taper(tw,td,bw,bd,b.h),lid:lidOn&&b.lh>0?new THREE.BoxGeometry(lw,b.lh,ld):null,bm:matFor(cv,false),lm:matFor(cv,true)};};
+
+  lv.forEach((x,i)=>{
+    const y0=floors[i];
+    for(let j=0;j<nc;j++){
+      const x0=-W/2+t+j*(c.w+t);
+      if(!x.id){ // 書本
+        let bx=x0+0.4,k=0;const bh=[.82,.9,.76,.88,.8,.93,.85];
+        while(bx<x0+c.w-4.5){const th=2.4+(k%3)*.7,hh=Math.min(x.h-1,x.h*bh[k%7]),dd=Math.min(D-1,22);
+          addMesh(new THREE.BoxGeometry(th,hh,dd),mats.book,bx+th/2,y0+hh/2,D/2-dd/2-0.5,mats.woodEdge);bx+=th+0.15;k++;}
+        continue;
+      }
+      const L=x.L,G=geoFor(x.id,x.b,L.o,L.lid),front=L.usedD<=D?D/2:-D/2+L.usedD;
+      for(let r=0;r<L.rows;r++)for(let k=0;k<L.cols;k++)for(let s=0;s<L.layers;s++){
+        const cx=x0+k*(L.fw+c.gap)+L.fw/2,cz=front-r*(L.fd+c.gap)-L.fd/2,yy=y0+s*L.pitch,out=cz+L.fd/2>D/2+0.01;
+        addMesh(G.body,out?mats.warn:G.bm,cx,yy,cz);
+        if(G.lid)addMesh(G.lid,out?mats.warn:G.lm,cx,yy+x.b.h+x.b.lh/2,cz);
+      }
+    }
+    if(i===sel){const g=new THREE.BoxGeometry(c.w,x.h,D);const e=new THREE.LineSegments(new THREE.EdgesGeometry(g),mats.selEdge);
+      e.position.set(-W/2+t+c.w/2,y0+x.h/2,0);e.renderOrder=998;group.add(e);g.dispose();}
+    if(!showDims||!x.id)return;
+    const L=x.L,x0=-W/2+t,xR=x0+c.w,zF=D/2+0.3,front=L.usedD<=D?D/2:-D/2+L.usedD;
+    if(L.per===0){makeLabel(L.failH?`第 ${i+1} 層太矮：差 ${f1(L.unitH-(L.h-c.tgap))} cm`:'放不下',new THREE.Vector3(x0+c.w/2,y0+L.h/2,zF),true);return;}
+    if(L.leftH>=0.3){const xm=x0+Math.min(L.usedW,c.w)/2;dimLine(new THREE.Vector3(xm,y0+L.usedH,zF),new THREE.Vector3(xm,y0+L.h,zF),`上方剩 ${f1(L.leftH)}`,false);}
+    if(L.leftW>=0.3){const yy=y0+Math.min(L.usedH,L.h)*0.45;dimLine(new THREE.Vector3(x0+L.usedW,yy,zF),new THREE.Vector3(xR,yy,zF),`右側剩 ${f1(L.leftW)}`,false);}
+    const yb=y0+Math.min(L.usedH,L.h)*0.75,xb=x0+Math.min(L.usedW,c.w)*0.25;
+    if(L.protrude>0)dimLine(new THREE.Vector3(xb,yb,D/2),new THREE.Vector3(xb,yb,D/2+L.protrude),`凸出 ${f1(L.protrude)}`,true,new THREE.Vector3(xb,yb+3,D/2+L.protrude));
+    else if(L.leftD>=0.3)dimLine(new THREE.Vector3(xb,yb,-D/2),new THREE.Vector3(xb,yb,front-L.usedD),`後方剩 ${f1(L.leftD)}`,false);
+  });
+  scaleLabels();
+  dims={W,H,D,c,t,floors};
+  if(firstBuild){setView('angle');firstBuild=false;}
+}
+let curView='angle';
+function setView(v){
+  curView=v;document.querySelectorAll('.views button[data-view]').forEach(bt=>bt.setAttribute('aria-pressed',bt.dataset.view===v?'true':'false'));
+  if(!renderer||!dims)return;
+  const{W,H,D,c,t,floors}=dims,aspect=Math.max(.5,camera.aspect||1.5);let tgt,pos;
+  if(v==='cell'){const i=sel>=0&&sel<c.hs.length?sel:0,h=c.hs[i],x=-W/2+t+c.w/2,y=floors[i]+h/2,R=Math.max(c.w/aspect,h)*2.1+D;
+    tgt=new THREE.Vector3(x,y,0);pos=new THREE.Vector3(x+R*.38,y+R*.22,R);}
+  else{const R=Math.max(W/aspect,H)*1.75;tgt=new THREE.Vector3(0,H/2,0);
+    if(v==='front')pos=new THREE.Vector3(0,H/2,R);else if(v==='side')pos=new THREE.Vector3(R,H/2,R*.1);else pos=new THREE.Vector3(R*.5,H*.62,R*.88);}
+  controls.target.copy(tgt);camera.position.copy(pos);controls.update();
+}
+document.querySelectorAll('.views button[data-view]').forEach(bt=>bt.addEventListener('click',()=>{if(bt.dataset.view==='cell'&&sel<0){sel=0;render();}setView(bt.dataset.view);}));
+$('dimToggle').addEventListener('click',()=>{showDims=!showDims;$('dimToggle').setAttribute('aria-pressed',String(showDims));render();});
+
+/* ---------- wiring ---------- */
+function render(){isLab()?renderLab():renderCombo();}
+function applyMode(){
+  const lab=isLab();
+  $('labSide').hidden=!lab;$('comboSide').hidden=lab;$('labTag').hidden=!lab;$('app').classList.toggle('lab',lab);
+  $('subline').textContent=lab?'測試模式：自由輸入櫃子和盒子尺寸。測好的組合可以複製成資料，加進推薦清單。':'挑一個櫃子和收納盒的組合，看每層怎麼擺、要買幾個。尺寸單位都是公分。';
+  sel=-1;render();setView('angle');
+}
+function syncLid(){$('lidbox').hidden=!$('bhasLid').checked;}
+let raf=0;const schedule=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(render);};
+['cw','cd','ccols'].forEach(id=>$(id).addEventListener('input',()=>{$('cabPreset').value='custom';schedule();}));
+['cw','ccols'].forEach(id=>$(id).addEventListener('change',()=>setView(curView)));
+['bname','btw','btd','bbw','bbd','bh','bhasLid','blidOn','blw','bld','blh','bstack','bnest'].forEach(id=>$(id).addEventListener('input',()=>{if(id!=='bname')$('boxPreset').value='custom';syncLid();schedule();}));
+['cover','gap','sgap','tgap','orient'].forEach(id=>$(id).addEventListener('input',schedule));
+$('cabPreset').addEventListener('change',e=>{applyCab(e.target.value);render();setView('angle');});
+$('boxPreset').addEventListener('change',e=>{applyBox(e.target.value);syncLid();render();});
+window.addEventListener('hashchange',applyMode);
+
+const ok=initGL();
+if(!ok){const d=document.createElement('div');d.className='nogl';d.textContent='這個瀏覽器無法顯示 3D 畫面，下方的擺法和購買清單仍然可以使用。';stage.appendChild(d);}
+drawFilters();drawCombos();syncLid();applyMode();
+if(ok){
+  const re=()=>{colorize();render();};
+  const mq=window.matchMedia('(prefers-color-scheme: dark)');mq.addEventListener&&mq.addEventListener('change',re);
+  new MutationObserver(re).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>render());
+}
+})();
+</script>
+</body>
+</html>
