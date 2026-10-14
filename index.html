@@ -12,11 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap">
 <style>
-:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-body{margin:0}
-img{max-width:100%}
-[hidden]{display:none!important}
-/* Layout: workbench — combo list (or lab inputs) on the left, 3D stage on the right, shopping list below. Accent = tape-measure yellow. */
+/* Layout: mobile-first. Combo strip → 3D stage → details & shopping list. Desktop: strip on top, stage left (sticky), details right. Accent = tape-measure yellow. */
 :root{
   --bg:#EDF0EE; --panel:#FFFFFF; --ink:#1C272A; --muted:#5A686B; --line:#D2D9D6;
   --accent:#D69A00; --accent-ink:#2E2200; --accent-soft:#FBEFC8;
@@ -25,6 +21,8 @@ img{max-width:100%}
   --box1:#5E979C; --box2:#8B6FA8; --box3:#6E8F4E; --box4:#B07A5B;
   --sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  color-scheme:light;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#121819; --panel:#1A2224; --ink:#E4EBE9; --muted:#9AA9AC; --line:#2C3739;
@@ -41,226 +39,202 @@ img{max-width:100%}
   --box1:#6FAEB3; --box2:#A68CC2; --box3:#86A866; --box4:#C99373;
   color-scheme:dark}
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.55}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.55}
+img{max-width:100%}
+[hidden]{display:none!important}
 .wrap{max-width:1320px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-header.top{padding-block:20px 0}
-.brand{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
-.brand b{font-family:var(--sans);font-weight:700;font-size:30px;letter-spacing:.04em;line-height:1.1}
+
+/* header */
+header.top{padding-block:14px 0}
+.brand{display:flex;align-items:baseline;gap:6px 10px;flex-wrap:wrap}
+.brand b{font-weight:700;font-size:26px;letter-spacing:.04em;line-height:1.1}
 .brand .en{font-family:var(--mono);font-weight:600;font-size:13px;letter-spacing:.08em;color:var(--muted)}
-.brand .tag{font-size:16px;font-weight:700}
-.labtag{font-size:12px;font-weight:700;color:var(--warn);border:1px solid var(--warn);border-radius:999px;padding:1px 10px}
-.sub{color:var(--muted);margin:4px 0 0;max-width:62ch}
-.ruler{height:14px;margin-top:14px;border-bottom:1px solid var(--ink);
-  background:
-   repeating-linear-gradient(90deg,var(--ink) 0 1px,transparent 1px 50px) bottom/100% 12px no-repeat,
-   repeating-linear-gradient(90deg,var(--ink) 0 1px,transparent 1px 10px) bottom/100% 6px no-repeat;opacity:.55}
-.app{display:grid;gap:20px;padding-block:20px 40px;grid-template-columns:minmax(0,1fr);grid-template-areas:"side" "stage" "res" "tab"}
-.app.lab{grid-template-areas:"stage" "res" "side" "tab"}
-@media (min-width:960px){.app,.app.lab{grid-template-columns:320px minmax(0,1fr);grid-template-areas:"side stage" "side res" "side tab";align-items:start}}
-.side{grid-area:side;display:flex;flex-direction:column;gap:14px;min-width:0}
-.stagecol{grid-area:stage;min-width:0}
-.result{grid-area:res;min-width:0}
-.tables{grid-area:tab;min-width:0;display:flex;flex-direction:column;gap:14px}
-@media (min-width:960px){.side{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;padding-right:4px}}
+.brand .tag{font-size:14px;font-weight:700}
+.labtag{font-size:12px;font-weight:700;color:var(--warn);border:1px solid var(--warn);border-radius:999px;padding:0 10px}
+.ruler{height:12px;margin-top:10px;border-bottom:1px solid var(--ink);opacity:.5;
+  background:repeating-linear-gradient(90deg,var(--ink) 0 1px,transparent 1px 50px) bottom/100% 10px no-repeat,
+             repeating-linear-gradient(90deg,var(--ink) 0 1px,transparent 1px 10px) bottom/100% 5px no-repeat}
 
-/* combo list */
-.filters{display:flex;gap:6px;flex-wrap:wrap}
-.fchip{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:4px 12px;cursor:pointer}
+/* combo picker */
+.picker{padding-block:12px 4px;display:flex;flex-direction:column;gap:8px}
+.scroller{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x proximity;padding-bottom:6px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+.fchip{flex:0 0 auto;font:inherit;font-size:13px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:4px 14px;cursor:pointer}
 .fchip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
-.combos{display:flex;flex-direction:column;gap:8px}
-@media (max-width:959px){.combos{flex-direction:row;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x mandatory}.ccard{flex:0 0 250px;scroll-snap-align:start}}
-.ccard{text-align:left;font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px 14px;cursor:pointer;display:flex;flex-direction:column;gap:6px}
-.ccard:hover{border-color:var(--muted)}
+.ccard{flex:0 0 200px;scroll-snap-align:start;text-align:left;font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;cursor:pointer;display:flex;flex-direction:column;gap:4px;min-width:0}
 .ccard[aria-current="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
-.ccard .cab{font-size:12px;color:var(--muted)}
-.ccard .ttl{font-weight:700;font-size:15px;line-height:1.35}
-.ccard .mix{display:flex;gap:4px 10px;flex-wrap:wrap;font-size:12px}
-.ccard .mix i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:0}
-.ccard .cnt{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.ccard .cab{font-size:11px;color:var(--muted);letter-spacing:.04em}
+.ccard .ttl{font-weight:700;font-size:14px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ccard .meta{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.dots{display:flex;gap:3px}
+.dots i{width:9px;height:9px;border-radius:2px;display:block}
+.ccard .meta b{font-family:var(--mono);color:var(--ink);margin-left:auto}
 
-/* lab inputs */
-fieldset,details.adv{border:1px solid var(--line);background:var(--panel);border-radius:6px;margin:0;padding:12px 14px 14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+/* main view */
+.view{display:grid;gap:14px;padding-block:8px 32px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:900px){
+  .view{grid-template-columns:minmax(0,1.25fr) minmax(360px,1fr);align-items:start;gap:20px}
+  .stagecol{position:sticky;top:12px}
+}
+.stagecol,.detail{min-width:0}
+.detail{display:flex;flex-direction:column;gap:14px}
+.stage{position:relative;background:var(--stage);border:1px solid var(--line);border-radius:8px;height:clamp(300px,54vh,470px);overflow:hidden}
+@media (min-width:900px){.stage{height:min(76vh,700px)}}
+.stage canvas{display:block;width:100%;height:100%;touch-action:none}
+.views{position:absolute;left:8px;top:8px;right:8px;display:flex;gap:6px;flex-wrap:wrap}
+.views button{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:4px 11px;cursor:pointer}
+.views button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+.views .sep{flex:1}
+.views #dimToggle[aria-pressed="true"]{background:var(--panel);border-color:var(--accent);color:var(--ink)}
+.views #dimToggle[aria-pressed="true"]::before{content:"✓ ";color:var(--accent);font-weight:700}
+.legend{position:absolute;left:8px;bottom:8px;display:flex;gap:10px;flex-wrap:wrap;font-size:11px;background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:2px 8px;color:var(--muted)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+@media (max-width:599px){.legend{display:none}}
+.hintline{font-size:12px;color:var(--muted);margin:6px 2px 0}
+.nogl{position:absolute;inset:0;display:grid;place-items:center;padding:20px;text-align:center;color:var(--muted)}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.rhead{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.panel h2{margin:0;font-size:20px;line-height:1.3;text-wrap:balance}
+.panel h3{margin:0;font-size:15px}
+.note{margin:0;color:var(--muted);max-width:68ch}
+.total{font-size:15px}
+.total b{font-family:var(--mono);font-size:24px;background:var(--accent-soft);padding:0 8px;border-radius:3px;font-variant-numeric:tabular-nums}
+.chip{font-size:12px;border-radius:999px;padding:1px 9px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.chip.ok{background:var(--ok-soft);border-color:transparent;color:var(--ok);font-weight:700}
+.chip.warn{background:var(--warn-soft);border-color:transparent;color:var(--warn);font-weight:700}
+.gallery{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.gthumb{flex:0 0 auto;width:96px;height:96px;border-radius:6px;overflow:hidden;border:1px solid var(--line);background:var(--bg);padding:0;cursor:pointer;position:relative}
+.gthumb img,.gthumb video{width:100%;height:100%;object-fit:cover;display:block}
+.play{position:absolute;inset:auto auto 6px 6px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;border-radius:999px;padding:1px 8px}
+
+/* shopping list */
+.items{display:flex;flex-direction:column;gap:10px}
+.item{display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;align-items:start;border-top:1px solid var(--line);padding-top:10px}
+.item:first-child{border-top:0;padding-top:0}
+.ithumb{width:96px;height:96px;border-radius:6px;overflow:hidden;border:1px solid var(--line);background:var(--bg);position:relative;padding:0;cursor:pointer;display:grid;place-items:center;color:var(--muted);font-size:11px;text-align:center}
+.ithumb[disabled]{cursor:default}
+.ithumb img,.ithumb video{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.ithumb .sw{position:absolute;left:6px;top:6px;width:12px;height:12px;border-radius:3px;z-index:1}
+.ithumb .more{position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;border-radius:999px;padding:0 7px;z-index:1}
+.ibody{display:flex;flex-direction:column;gap:3px;min-width:0}
+.iname{font-weight:700;line-height:1.35}
+.ispec{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.iqty{font-size:13px}
+.iqty b{font-family:var(--mono);font-size:16px}
+.buys{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.buy{font-size:13px;font-weight:700;text-decoration:none;border-radius:6px;padding:6px 14px;border:1px solid var(--ink);color:var(--ink)}
+.buy.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.buy.off{border-style:dashed;border-color:var(--line);color:var(--muted);font-weight:500}
+.badge{font-size:11px;border-radius:999px;padding:0 8px;align-self:flex-start}
+.badge.v{background:var(--ok-soft);color:var(--ok);font-weight:700}
+.badge.c{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+
+details.lv summary{cursor:pointer;font-weight:700;font-size:15px}
+details.lv[open] summary{margin-bottom:8px}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:500;color:var(--muted);white-space:nowrap}
+td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+td i.sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px}
+thead th{font-size:12px;border-bottom:1px solid var(--ink)}
+tbody tr.bad td{color:var(--warn)}
+tbody tr.sel td{background:var(--accent-soft)}
+.lvtable tbody tr{cursor:pointer}
+.notes{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.notes li.w{color:var(--warn)}
+.foot{font-size:12px;color:var(--muted);margin:0;max-width:75ch}
+
+/* buy bar (phone) */
+.buybar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--panel);border-top:1px solid var(--line);
+  padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
+  display:flex;align-items:center;gap:12px;box-shadow:0 -4px 16px rgba(0,0,0,.08)}
+.buybar span{font-size:14px;flex:1}
+.buybar b{font-family:var(--mono);font-size:18px}
+.buybar button{font:inherit;font-weight:700;border:0;border-radius:8px;background:var(--accent);color:var(--accent-ink);padding:9px 16px;cursor:pointer}
+@media (min-width:900px){.buybar{display:none!important}}
+body.hasbar{padding-bottom:72px}
+@media (min-width:900px){body.hasbar{padding-bottom:0}}
+
+/* lightbox */
+.lightbox{position:fixed;inset:0;z-index:50;background:#0B0F10;color:#F2F5F4;display:flex;flex-direction:column}
+.lbbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(10px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px))}
+.lbbar button{font:inherit;font-size:14px;background:#26302F;color:#F2F5F4;border:0;border-radius:999px;padding:6px 14px;cursor:pointer}
+.lbtrack{flex:1;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;min-height:0}
+.lbslide{flex:0 0 100%;scroll-snap-align:center;display:grid;place-items:center;padding:0 12px calc(16px + env(safe-area-inset-bottom,0px));min-height:0}
+.lbslide img,.lbslide video{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px}
+.lbslide iframe{border:0;border-radius:8px;width:min(100%,calc((100vh - 120px)*9/16));aspect-ratio:9/16;max-height:100%}
+.lbslide iframe.wide{width:min(100%,960px);aspect-ratio:16/9}
+
+/* lab */
+fieldset,details.adv{border:1px solid var(--line);background:var(--panel);border-radius:8px;margin:0;padding:12px 14px 14px;display:flex;flex-direction:column;gap:10px;min-width:0}
 legend{font-weight:700;font-size:13px;letter-spacing:.06em;padding:0 6px}
 details.adv{display:block}
-details.adv summary{cursor:pointer;font-weight:700;font-size:13px;letter-spacing:.06em}
+details.adv summary{cursor:pointer;font-weight:700;font-size:13px}
 details.adv[open] summary{margin-bottom:10px}
 .stack{display:flex;flex-direction:column;gap:10px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px 8px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .f{display:flex;flex-direction:column;gap:3px;min-width:0}
 .f label{font-size:12px;color:var(--muted)}
 .unit{position:relative}
 .unit input{padding-right:30px}
 .unit::after{content:attr(data-u);position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--muted);font-family:var(--mono);pointer-events:none}
-input[type=number],input[type=text],select{width:100%;font:inherit;font-family:var(--mono);font-size:14px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:6px 8px;min-width:0}
-input[type=text],select{font-family:var(--sans)}
-input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+input[type=number],input[type=text],input[type=url],input[type=password],select,textarea{width:100%;font:inherit;font-family:var(--mono);font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;min-width:0}
+@media (min-width:900px){input[type=number],input[type=text],input[type=url],input[type=password],select,textarea{font-size:14px}}
+input[type=text],select,textarea{font-family:var(--sans)}
+textarea{resize:vertical;min-height:60px}
+input[type=file]{font:inherit;font-size:13px;max-width:100%}
+input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible,a:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .sec{font-size:12px;font-weight:700;margin-top:2px;display:flex;align-items:center;gap:6px}
 .sec::after{content:"";flex:1;border-top:1px dashed var(--line)}
 .chk{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer}
 .chk input{width:16px;height:16px;accent-color:var(--accent)}
-.row{display:flex;gap:14px;flex-wrap:wrap}
+.row{display:flex;gap:10px 14px;flex-wrap:wrap;align-items:center}
 .hint{font-size:12px;color:var(--muted);margin:0}
 .levels{display:flex;flex-direction:column;gap:6px}
-.lvrow{display:grid;grid-template-columns:64px minmax(0,1fr) 32px;gap:8px;align-items:center}
+.lvrow{display:grid;grid-template-columns:64px minmax(0,1fr) 34px;gap:8px;align-items:center}
 .lvrow span{font-size:12px;color:var(--muted);white-space:nowrap}
 .lvrow.sel span{color:var(--ink);font-weight:700}
 .lvrow.sel input{border-color:var(--accent)}
-.iconbtn{width:32px;height:32px;border:1px solid var(--line);background:var(--bg);color:var(--muted);border-radius:4px;cursor:pointer;font-size:16px;line-height:1}
+.iconbtn{width:34px;height:34px;border:1px solid var(--line);background:var(--bg);color:var(--muted);border-radius:6px;cursor:pointer;font-size:16px;line-height:1}
 .iconbtn:disabled{opacity:.35;cursor:default}
-.btn{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:5px 12px;cursor:pointer}
-.btn.solid{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.addlv{align-self:flex-start}
-
-/* stage */
-.stage{position:relative;background:var(--stage);border:1px solid var(--line);border-radius:6px;height:min(64vh,620px);min-height:380px;overflow:hidden}
-.stage canvas{display:block;width:100%;height:100%;touch-action:none}
-.views{position:absolute;left:10px;top:10px;right:10px;display:flex;gap:6px;flex-wrap:wrap}
-.views button{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:5px 12px;cursor:pointer}
-.views button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
-.views .sep{flex:1}
-.legend{position:absolute;left:10px;bottom:10px;display:flex;gap:12px;flex-wrap:wrap;font-size:12px;background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:4px 10px;color:var(--muted)}
-.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
-.nogl{position:absolute;inset:0;display:grid;place-items:center;padding:20px;text-align:center;color:var(--muted)}
-
-/* result */
-.result{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px;display:flex;flex-direction:column;gap:14px}
-.rhead{display:flex;flex-direction:column;gap:4px}
-.rhead .cab{font-size:12px;color:var(--muted)}
-.rhead h2{margin:0;font-size:20px;text-wrap:balance}
-.rhead p{margin:0;color:var(--muted);max-width:70ch}
-.total{font-size:15px}
-.total b{font-family:var(--mono);font-size:24px;background:var(--accent-soft);padding:0 8px;border-radius:3px;font-variant-numeric:tabular-nums}
-.chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{font-size:12px;border-radius:999px;padding:3px 10px;border:1px solid var(--line);background:var(--bg)}
-.chip.ok{background:var(--ok-soft);border-color:transparent;color:var(--ok);font-weight:700}
-.chip.warn{background:var(--warn-soft);border-color:transparent;color:var(--warn);font-weight:700}
-.notes{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
-.notes li{padding-left:16px;position:relative;max-width:75ch}
-.notes li::before{content:"";position:absolute;left:2px;top:.62em;width:7px;height:7px;border-radius:50%;background:var(--muted)}
-.notes li.w::before{background:var(--warn)}
-.tw{overflow-x:auto}
-table{border-collapse:collapse;width:100%;font-size:13px}
-th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
-th{font-weight:500;color:var(--muted);white-space:nowrap}
-td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
-td i.sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px}
-thead th{font-size:12px;letter-spacing:.04em;border-bottom:1px solid var(--ink)}
-tbody tr.bad td{color:var(--warn)}
-tbody tr.sel td{background:var(--accent-soft)}
-.lvtable tbody tr{cursor:pointer}
-
-/* shopping list */
-.shop h3{margin:0 0 10px;font-size:15px}
-.items{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
-.item{border:1px solid var(--line);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;background:var(--panel)}
-.photo{aspect-ratio:4/3;max-width:100%;background:var(--bg);display:grid;place-items:center;color:var(--muted);font-size:12px;border-bottom:1px solid var(--line);position:relative;text-align:center;padding:10px}
-.photo img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
-.photo .sw{position:absolute;left:10px;top:10px;width:14px;height:14px;border-radius:3px}
-.ibody{padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
-.iname{font-weight:700}
-.ispec{font-family:var(--mono);font-size:12px;color:var(--muted)}
-.iqty{font-size:13px}
-.iqty b{font-family:var(--mono);font-size:16px}
-.buys{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto;padding-top:4px}
-.buy{font-size:13px;font-weight:700;text-decoration:none;border-radius:4px;padding:6px 12px;border:1px solid var(--ink);color:var(--ink)}
-.buy.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-.buy.off{border-style:dashed;border-color:var(--line);color:var(--muted);font-weight:500;cursor:default}
-.badge{font-size:11px;border-radius:999px;padding:1px 8px;align-self:flex-start}
-.badge.v{background:var(--ok-soft);color:var(--ok);font-weight:700}
-.badge.c{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px}
-.card h2{font-size:15px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-.copied{font-size:12px;color:var(--ok)}
-.foot{font-size:12px;color:var(--muted);max-width:75ch;margin:0}
+.btn{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:6px 14px;cursor:pointer}
+.btn.solid{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:700}
+.btn:disabled{opacity:.5;cursor:default}
+.mlist{display:flex;gap:8px;flex-wrap:wrap}
+.mitem{position:relative;width:72px;height:72px;border-radius:6px;overflow:hidden;border:1px solid var(--line);background:var(--bg);display:grid;place-items:center;font-size:11px;color:var(--muted);text-align:center}
+.mitem img,.mitem video{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.mitem button{position:absolute;right:2px;top:2px;width:22px;height:22px;border-radius:50%;border:0;background:rgba(0,0,0,.65);color:#fff;cursor:pointer;z-index:1;line-height:1}
+.mitem .new{position:absolute;left:3px;bottom:3px;background:var(--accent);color:var(--accent-ink);border-radius:999px;padding:0 6px;font-size:10px;font-weight:700;z-index:1}
+.status{font-size:13px;margin:0}
+.status.ok{color:var(--ok)}
+.status.err{color:var(--warn)}
+.clvrow{display:grid;grid-template-columns:64px minmax(0,1fr);gap:8px;align-items:center}
+.clvrow span{font-size:12px;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
 
-<header class="top">
-  <div class="wrap">
-    <div class="brand"><b>塞唄</b><span class="en">Sideby</span><span class="tag">先塞塞看，再下單</span><span class="labtag" id="labTag" hidden>測試模式</span></div>
-    <p class="sub" id="subline">挑一個櫃子和收納盒的組合，看每層怎麼擺、要買幾個。尺寸單位都是公分。</p>
-    <div class="ruler" aria-hidden="true"></div>
-  </div>
+<header class="top wrap">
+  <div class="brand"><b>塞唄</b><span class="en">Sideby</span><span class="tag">先塞塞看，再下單</span><span class="labtag" id="labTag" hidden>測試模式</span></div>
+  <div class="ruler" aria-hidden="true"></div>
 </header>
 
-<main class="wrap app" id="app">
-  <!-- 推薦組合 -->
-  <aside class="side" id="comboSide">
-    <div class="filters" id="filters" role="group" aria-label="依櫃子篩選"></div>
-    <div class="combos" id="combos"></div>
-  </aside>
+<section class="picker wrap" id="picker" aria-label="推薦組合">
+  <div class="scroller" id="filters" role="group" aria-label="依櫃子篩選"></div>
+  <div class="scroller" id="combos"></div>
+</section>
 
-  <!-- 測試模式（網址加 #lab 才會出現） -->
-  <aside class="side" id="labSide" hidden>
-    <fieldset>
-      <legend>櫃子</legend>
-      <div class="f"><label for="cabPreset">櫃型</label><select id="cabPreset"></select></div>
-      <div class="grid3">
-        <div class="f"><label for="cw">內寬</label><div class="unit" data-u="cm"><input id="cw" type="number" step="0.1" min="5"></div></div>
-        <div class="f"><label for="cd">內深</label><div class="unit" data-u="cm"><input id="cd" type="number" step="0.1" min="5"></div></div>
-        <div class="f"><label for="ccols">欄數</label><input id="ccols" type="number" step="1" min="1" max="6"></div>
-      </div>
-      <div class="sec">每層淨高（由上往下）</div>
-      <div class="levels" id="levels"></div>
-      <button type="button" class="btn addlv" id="addLv">＋ 加一層</button>
-    </fieldset>
-    <fieldset>
-      <legend>收納盒</legend>
-      <div class="f"><label for="boxPreset">盒子</label><select id="boxPreset"></select></div>
-      <div class="f"><label for="bname">名稱</label><input id="bname" type="text"></div>
-      <div class="sec">上緣外尺寸</div>
-      <div class="grid2">
-        <div class="f"><label for="btw">寬</label><div class="unit" data-u="cm"><input id="btw" type="number" step="0.1" min="1"></div></div>
-        <div class="f"><label for="btd">深</label><div class="unit" data-u="cm"><input id="btd" type="number" step="0.1" min="1"></div></div>
-      </div>
-      <div class="sec">底部外尺寸與高度</div>
-      <div class="grid3">
-        <div class="f"><label for="bbw">底寬</label><div class="unit" data-u="cm"><input id="bbw" type="number" step="0.1" min="1"></div></div>
-        <div class="f"><label for="bbd">底深</label><div class="unit" data-u="cm"><input id="bbd" type="number" step="0.1" min="1"></div></div>
-        <div class="f"><label for="bh">盒高</label><div class="unit" data-u="cm"><input id="bh" type="number" step="0.1" min="1"></div></div>
-      </div>
-      <div class="row">
-        <label class="chk"><input id="bhasLid" type="checkbox">有蓋子</label>
-        <label class="chk"><input id="bstack" type="checkbox">可以堆疊</label>
-      </div>
-      <div id="lidbox" class="stack">
-        <div class="grid3">
-          <div class="f"><label for="blw">蓋寬</label><div class="unit" data-u="cm"><input id="blw" type="number" step="0.1" min="1"></div></div>
-          <div class="f"><label for="bld">蓋深</label><div class="unit" data-u="cm"><input id="bld" type="number" step="0.1" min="1"></div></div>
-          <div class="f"><label for="blh">蓋高</label><div class="unit" data-u="cm"><input id="blh" type="number" step="0.1" min="0"></div></div>
-        </div>
-        <label class="chk"><input id="blidOn" type="checkbox">放進櫃子時蓋著</label>
-      </div>
-      <div class="f"><label for="bnest">疊放嵌入深度</label><div class="unit" data-u="cm"><input id="bnest" type="number" step="0.1" min="0"></div></div>
-    </fieldset>
-    <details class="adv">
-      <summary>進階設定</summary>
-      <div class="stack">
-        <div class="grid2">
-          <div class="f"><label for="cover">允許凸出櫃外</label><div class="unit" data-u="cm"><input id="cover" type="number" step="0.5" min="0"></div></div>
-          <div class="f"><label for="gap">盒間距</label><div class="unit" data-u="cm"><input id="gap" type="number" step="0.1" min="0"></div></div>
-          <div class="f"><label for="sgap">左右總餘裕</label><div class="unit" data-u="cm"><input id="sgap" type="number" step="0.1" min="0"></div></div>
-          <div class="f"><label for="tgap">上方取放空間</label><div class="unit" data-u="cm"><input id="tgap" type="number" step="0.1" min="0"></div></div>
-          <div class="f"><label for="orient">擺放方向</label><select id="orient"><option value="auto">自動</option><option value="0">正放</option><option value="1">轉 90°</option></select></div>
-        </div>
-      </div>
-    </details>
-    <div class="card">
-      <h2><span>存成組合資料</span></h2>
-      <p class="hint">測好之後按這裡，會複製一段資料，把 box 加進 catalog.json 的 boxes、combo 加進 combos，就會變成新的推薦組合。</p>
-      <p style="margin:10px 0 0"><button type="button" class="btn solid" id="exportBtn">複製組合資料</button> <span class="copied" id="exported" hidden>已複製</span></p>
-    </div>
-  </aside>
-
+<main class="wrap view">
   <section class="stagecol">
     <div class="stage" id="stage">
       <div class="views" role="group" aria-label="視角">
         <button type="button" data-view="angle" aria-pressed="true">斜角</button>
         <button type="button" data-view="front" aria-pressed="false">正面</button>
         <button type="button" data-view="side" aria-pressed="false">側面</button>
-        <button type="button" data-view="cell" aria-pressed="false">單層特寫</button>
+        <button type="button" data-view="cell" aria-pressed="false">單層</button>
         <span class="sep"></span>
         <button type="button" id="dimToggle" aria-pressed="true">剩餘尺寸</button>
       </div>
@@ -270,34 +244,147 @@ tbody tr.sel td{background:var(--accent-soft)}
         <span><i style="background:var(--boxwarn)"></i>凸出櫃外</span>
       </div>
     </div>
+    <p class="hintline">拖曳旋轉、雙指縮放。點櫃子的任一層可以放大看那一層的剩餘空間，再點一次回到全櫃。</p>
   </section>
 
-  <section class="result" id="result" aria-live="polite"></section>
+  <section class="detail">
+    <div class="panel" id="result"></div>
+    <div class="panel" id="shop"></div>
 
-  <section class="tables" id="tables"></section>
+    <!-- 測試模式 -->
+    <div class="stack" id="labPanel" hidden>
+      <fieldset>
+        <legend>櫃子</legend>
+        <div class="f"><label for="cabPreset">櫃型</label><select id="cabPreset"></select></div>
+        <div class="grid3">
+          <div class="f"><label for="cw">內寬</label><div class="unit" data-u="cm"><input id="cw" type="number" inputmode="decimal" step="0.1" min="5"></div></div>
+          <div class="f"><label for="cd">內深</label><div class="unit" data-u="cm"><input id="cd" type="number" inputmode="decimal" step="0.1" min="5"></div></div>
+          <div class="f"><label for="ccols">欄數</label><input id="ccols" type="number" inputmode="numeric" step="1" min="1" max="6"></div>
+        </div>
+        <div class="sec">每層淨高（由上往下）</div>
+        <div class="levels" id="levels"></div>
+        <button type="button" class="btn" id="addLv" style="align-self:flex-start">＋ 加一層</button>
+      </fieldset>
+
+      <fieldset>
+        <legend>收納盒</legend>
+        <div class="f"><label for="boxPreset">盒子</label><select id="boxPreset"></select></div>
+        <div class="f"><label for="bname">名稱</label><input id="bname" type="text"></div>
+        <div class="sec">上緣外尺寸</div>
+        <div class="grid2">
+          <div class="f"><label for="btw">寬</label><div class="unit" data-u="cm"><input id="btw" type="number" inputmode="decimal" step="0.1" min="1"></div></div>
+          <div class="f"><label for="btd">深</label><div class="unit" data-u="cm"><input id="btd" type="number" inputmode="decimal" step="0.1" min="1"></div></div>
+        </div>
+        <div class="sec">底部外尺寸與高度</div>
+        <div class="grid3">
+          <div class="f"><label for="bbw">底寬</label><div class="unit" data-u="cm"><input id="bbw" type="number" inputmode="decimal" step="0.1" min="1"></div></div>
+          <div class="f"><label for="bbd">底深</label><div class="unit" data-u="cm"><input id="bbd" type="number" inputmode="decimal" step="0.1" min="1"></div></div>
+          <div class="f"><label for="bh">盒高</label><div class="unit" data-u="cm"><input id="bh" type="number" inputmode="decimal" step="0.1" min="1"></div></div>
+        </div>
+        <div class="row">
+          <label class="chk"><input id="bhasLid" type="checkbox">有蓋子</label>
+          <label class="chk"><input id="bstack" type="checkbox">可以堆疊</label>
+        </div>
+        <div id="lidbox" class="stack">
+          <div class="grid3">
+            <div class="f"><label for="blw">蓋寬</label><div class="unit" data-u="cm"><input id="blw" type="number" inputmode="decimal" step="0.1" min="1"></div></div>
+            <div class="f"><label for="bld">蓋深</label><div class="unit" data-u="cm"><input id="bld" type="number" inputmode="decimal" step="0.1" min="1"></div></div>
+            <div class="f"><label for="blh">蓋高</label><div class="unit" data-u="cm"><input id="blh" type="number" inputmode="decimal" step="0.1" min="0"></div></div>
+          </div>
+          <label class="chk"><input id="blidOn" type="checkbox">放進櫃子時蓋著</label>
+        </div>
+        <div class="f"><label for="bnest">疊放嵌入深度</label><div class="unit" data-u="cm"><input id="bnest" type="number" inputmode="decimal" step="0.1" min="0"></div></div>
+      </fieldset>
+
+      <details class="adv">
+        <summary>進階設定</summary>
+        <div class="grid2">
+          <div class="f"><label for="cover">允許凸出櫃外</label><div class="unit" data-u="cm"><input id="cover" type="number" inputmode="decimal" step="0.5" min="0"></div></div>
+          <div class="f"><label for="gap">盒間距</label><div class="unit" data-u="cm"><input id="gap" type="number" inputmode="decimal" step="0.1" min="0"></div></div>
+          <div class="f"><label for="sgap">左右總餘裕</label><div class="unit" data-u="cm"><input id="sgap" type="number" inputmode="decimal" step="0.1" min="0"></div></div>
+          <div class="f"><label for="tgap">上方取放空間</label><div class="unit" data-u="cm"><input id="tgap" type="number" inputmode="decimal" step="0.1" min="0"></div></div>
+          <div class="f"><label for="orient">擺放方向</label><select id="orient"><option value="auto">自動</option><option value="0">正放</option><option value="1">轉 90°</option></select></div>
+        </div>
+      </details>
+
+      <fieldset id="pub">
+        <legend>發佈到網站</legend>
+        <div class="f"><label for="ghToken">GitHub 金鑰</label><input id="ghToken" type="password" autocomplete="off" placeholder="github_pat_…"></div>
+        <label class="chk"><input id="ghRemember" type="checkbox">記在這台裝置上</label>
+        <p class="hint">金鑰只存在你自己的瀏覽器，用來把資料寫進 sideby repo。建立方式見 README。</p>
+
+        <div class="sec">收納盒</div>
+        <div class="f"><label for="editBox">要儲存的盒子</label><select id="editBox"></select></div>
+        <p class="hint">尺寸用上方「收納盒」欄位填寫。選既有的盒子會把它的資料帶進來，可以補連結或照片。</p>
+        <div class="f"><label for="shopee">蝦皮分潤連結</label><input id="shopee" type="url" inputmode="url" placeholder="https://s.shopee.tw/…"></div>
+        <div class="f"><label for="coupang">酷澎連結</label><input id="coupang" type="url" inputmode="url" placeholder="選填"></div>
+        <label class="chk"><input id="verified" type="checkbox">我實際買來放過了（顯示「已實測」）</label>
+        <div class="f"><label for="boxFiles">照片或短影片</label><input id="boxFiles" type="file" accept="image/*,video/*" multiple></div>
+        <div class="f"><label for="boxYT">YouTube 影片連結（一行一個）</label><textarea id="boxYT" rows="2" placeholder="https://youtube.com/shorts/…"></textarea></div>
+        <div class="mlist" id="boxMedia"></div>
+        <button type="button" class="btn solid" id="saveBox" style="align-self:flex-start">儲存盒子</button>
+
+        <div class="sec">推薦組合</div>
+        <div class="f"><label for="editCombo">要儲存的組合</label><select id="editCombo"></select></div>
+        <div class="f"><label for="cTitle">組合名稱</label><input id="cTitle" type="text" placeholder="例如：整理箱放滿整櫃"></div>
+        <div class="f"><label for="cNote">一句話說明</label><textarea id="cNote" rows="2"></textarea></div>
+        <div class="f"><label for="cCab">櫃子</label><select id="cCab"></select></div>
+        <div class="levels" id="cLevels"></div>
+        <div class="f"><label for="comboFiles">這組的實拍照片或短影片</label><input id="comboFiles" type="file" accept="image/*,video/*" multiple></div>
+        <div class="f"><label for="comboYT">YouTube 影片連結（一行一個）</label><textarea id="comboYT" rows="2"></textarea></div>
+        <div class="mlist" id="comboMedia"></div>
+        <div class="row">
+          <button type="button" class="btn" id="previewCombo">在 3D 預覽</button>
+          <button type="button" class="btn solid" id="saveCombo">儲存組合</button>
+        </div>
+        <p class="status" id="pubStatus" role="status"></p>
+      </fieldset>
+    </div>
+
+    <p class="foot" id="foot">購買連結為分潤連結，透過連結購買，本站可能獲得分潤，不影響你的購買價格。尺寸僅供參考，購買前請量一下自家櫃子的層高。</p>
+  </section>
 </main>
+
+<div class="buybar" id="buybar" hidden>
+  <span>這組要買 <b id="barQty">0</b> 個收納盒</span>
+  <button type="button" id="barBtn">看購買清單</button>
+</div>
+
+<div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="照片與影片">
+  <div class="lbbar"><span id="lbCount"></span><button type="button" id="lbClose">關閉</button></div>
+  <div class="lbtrack" id="lbTrack"></div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
-/* 商品、櫃子、推薦組合的資料都在 catalog.json，新增商品只要改那個檔案。 */
-
-
+/* 資料在 catalog.json。平常新增商品請用 pengwho.com/sideby/#lab 的「發佈到網站」，不用改程式。 */
 (async function(){
-let CATALOG;
-try{const r=await fetch('catalog.json',{cache:'no-cache'});if(!r.ok)throw new Error(r.status);CATALOG=await r.json();}
-catch(e){document.getElementById('result').textContent='組合資料載入失敗，請重新整理頁面。';console.error(e);return;}
-const MAXLV=10;
-const DEF={over:0,gap:0.5,sgap:1,tgap:1};
-const BOXCOL=['--box1','--box2','--box3','--box4'];
+const REPO='pengwho/sideby';
+const MAXLV=10, DEF={over:0,gap:0.5,sgap:1,tgap:1}, BOXCOL=['--box1','--box2','--box3','--box4'];
+const VIDEO_MAX=25*1024*1024;
 const $=id=>document.getElementById(id);
 const num=id=>{const v=parseFloat($(id).value);return isFinite(v)?v:0;};
 const f1=n=>{const r=Math.round(n*10)/10;return (Object.is(r,-0)?0:r).toString();};
-const esc=s=>String(s).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#888';
 const isLab=()=>location.hash==='#lab';
-const boxIds=Object.keys(CATALOG.boxes);
-const colorVar=id=>BOXCOL[Math.max(0,boxIds.indexOf(id))%BOXCOL.length]||'--box1';
+const store={get(k){try{return localStorage.getItem(k);}catch(e){return null;}},set(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v);}catch(e){}}};
+
+let CATALOG;
+try{const r=await fetch('catalog.json',{cache:'no-cache'});if(!r.ok)throw new Error(r.status);CATALOG=await r.json();}
+catch(e){$('result').textContent='組合資料載入失敗，請重新整理頁面。';console.error(e);return;}
+CATALOG.cabinets=CATALOG.cabinets||{};CATALOG.boxes=CATALOG.boxes||{};CATALOG.combos=CATALOG.combos||[];
+
+const colorVar=id=>{const i=Object.keys(CATALOG.boxes).indexOf(id);return BOXCOL[(i<0?0:i)%BOXCOL.length];};
+const shortName=n=>String(n).replace(/（.*?）/g,'');
+function mediaOf(x){const m=(x&&x.media||[]).slice();(x&&x.photos||[]).forEach(p=>m.push({type:'image',src:p}));return m;}
+const ytThumb=id=>`https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+function thumbHTML(m){
+  if(m.type==='image')return `<img src="${esc(m.src)}" alt="" loading="lazy">`;
+  if(m.type==='youtube')return `<img src="${ytThumb(esc(m.id))}" alt="" loading="lazy">`;
+  return `<video src="${esc(m.src)}#t=0.5" muted playsinline preload="metadata"></video>`;
+}
 
 /* ---------- math ---------- */
 function layout(c,b,o,h){
@@ -307,7 +394,7 @@ function layout(c,b,o,h){
   const unitH=b.h+(lid?b.lh:0);
   const tapered=(b.tw-b.bw>0.05)||(b.td-b.bd>0.05);
   const nestBlock=b.stack&&tapered&&!lid,canStack=b.stack&&!nestBlock;
-  const pitch=Math.max(0.5,unitH-(canStack?b.nest:0));
+  const pitch=Math.max(0.5,unitH-(canStack?(b.nest||0):0));
   const g=c.gap,aW=c.w-c.sgap,aD=c.d+c.over,aH=h-c.tgap,e=1e-9;
   const fit=(a,s)=>(s>0&&s<=a+e)?Math.floor((a+g+e)/(s+g)):0;
   const cols=fit(aW,fw),rows=fit(aD,fd);
@@ -318,120 +405,160 @@ function layout(c,b,o,h){
     leftW:c.w-usedW,leftD:Math.max(0,c.d-usedD),leftH:h-usedH,protrude:Math.max(0,usedD-c.d),
     failW:fw>aW+e,failD:fd>aD+e,failH:unitH>aH+e};
 }
-/* 每層放哪個盒子 → 每個盒子種類挑一個最好的方向 */
 function planLevels(c,levelBoxes,boxOf,mode){
   const ori={};
   [...new Set(levelBoxes.filter(Boolean))].forEach(id=>{
-    const b=boxOf(id),idx=levelBoxes.map((x,i)=>x===id?i:-1).filter(i=>i>=0);
+    const b=boxOf(id);if(!b)return;
+    const idx=levelBoxes.map((x,i)=>x===id?i:-1).filter(i=>i>=0);
+    if(mode==='0'||mode==='1'){ori[id]=+mode;return;}
     const tot=o=>idx.reduce((s,i)=>s+layout(c,b,o,c.hs[i]).per,0);
     const pro=o=>layout(c,b,o,Math.max(...idx.map(i=>c.hs[i]))).protrude;
-    if(mode==='0'||mode==='1'){ori[id]=+mode;return;}
     const A=tot(0),B=tot(1);ori[id]=(B>A||(B===A&&B>0&&pro(1)<pro(0)))?1:0;
-    ori[id+'_alt']=Math.abs(A-B)*c.cols;
   });
-  return c.hs.map((h,i)=>{const id=levelBoxes[i];if(!id)return{h,id:null};const b=boxOf(id);return{h,id,b,L:layout(c,b,ori[id],h)};});
+  return c.hs.map((h,i)=>{const id=levelBoxes[i];const b=id&&boxOf(id);if(!b)return{h,id:null};return{h,id,b,L:layout(c,b,ori[id],h)};});
 }
 const sumQty=(lv,c)=>{const q={};lv.forEach(x=>{if(x.id)q[x.id]=(q[x.id]||0)+x.L.per*c.cols;});return q;};
 function bodyVol(b){const am=((b.tw+b.bw)/2)*((b.td+b.bd)/2);return b.h/6*(b.tw*b.td+b.bw*b.bd+4*am);}
-function spec(b){return `上 ${f1(b.tw)}×${f1(b.td)}／底 ${f1(b.bw)}×${f1(b.bd)}／高 ${f1(b.h)}${b.hasLid?`／蓋高 ${f1(b.lh)}`:''}`;}
+const spec=b=>`上 ${f1(b.tw)}×${f1(b.td)}／底 ${f1(b.bw)}×${f1(b.bd)}／高 ${f1(b.h)}${b.hasLid?`／蓋 ${f1(b.lh)}`:''}`;
 
 /* ---------- state ---------- */
-let comboId=CATALOG.combos[0].id, filter='all', sel=-1;
+let comboId=(CATALOG.combos[0]||{}).id, filter='all', sel=-1, previewCombo=null;
 function settings(){return{over:Math.max(0,num('cover')),gap:Math.max(0,num('gap')),sgap:Math.max(0,num('sgap')),tgap:Math.max(0,num('tgap'))};}
+function comboCab(k){const base=typeof k.cabinet==='string'?CATALOG.cabinets[k.cabinet]:k.cabinet;if(!base)return null;return Object.assign({},base,{hs:(k.hs||base.hs).slice()});}
+function comboPlan(k){const cab=comboCab(k);if(!cab)return null;const c=Object.assign({},cab,settings());return{c,cab,lv:planLevels(c,k.levels,id=>CATALOG.boxes[id],'auto')};}
+
+/* ---------- lightbox ---------- */
+function openLightbox(list,start){
+  if(!list.length)return;
+  const tr=$('lbTrack');
+  tr.innerHTML=list.map(m=>{
+    if(m.type==='image')return `<div class="lbslide"><img src="${esc(m.src)}" alt=""></div>`;
+    if(m.type==='video')return `<div class="lbslide"><video src="${esc(m.src)}" controls playsinline preload="metadata"></video></div>`;
+    return `<div class="lbslide"><iframe class="${m.wide?'wide':''}" src="https://www.youtube-nocookie.com/embed/${esc(m.id)}?playsinline=1&rel=0" title="影片" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>`;
+  }).join('');
+  $('lightbox').hidden=false;document.body.style.overflow='hidden';
+  const upd=()=>{const i=Math.round(tr.scrollLeft/Math.max(1,tr.clientWidth));$('lbCount').textContent=list.length>1?`${i+1} / ${list.length}`:'';};
+  tr.onscroll=upd;requestAnimationFrame(()=>{tr.scrollLeft=start*tr.clientWidth;upd();});
+  $('lbClose').focus();
+}
+function closeLightbox(){$('lightbox').hidden=true;$('lbTrack').innerHTML='';document.body.style.overflow='';}
+$('lbClose').addEventListener('click',closeLightbox);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('lightbox').hidden)closeLightbox();});
 
 /* ---------- combo mode ---------- */
 function drawFilters(){
-  const used=[...new Set(CATALOG.combos.map(k=>typeof k.cabinet==='string'?k.cabinet:null).filter(Boolean))];
-  const opts=[['all','全部'],...used.map(k=>[k,CATALOG.cabinets[k].short])];
-  $('filters').innerHTML=opts.map(([k,t])=>`<button type="button" class="fchip" data-f="${k}" aria-pressed="${k===filter}">${esc(t)}</button>`).join('');
+  const used=[...new Set(CATALOG.combos.map(k=>typeof k.cabinet==='string'?k.cabinet:null).filter(k=>k&&CATALOG.cabinets[k]))];
+  const opts=[['all','全部'],...used.map(k=>[k,CATALOG.cabinets[k].short||CATALOG.cabinets[k].name])];
+  $('filters').innerHTML=opts.map(([k,t])=>`<button type="button" class="fchip" data-f="${esc(k)}" aria-pressed="${k===filter}">${esc(t)}</button>`).join('');
   $('filters').querySelectorAll('button').forEach(bt=>bt.addEventListener('click',()=>{filter=bt.dataset.f;drawFilters();drawCombos();}));
 }
-function comboCab(k){const base=typeof k.cabinet==='string'?CATALOG.cabinets[k.cabinet]:k.cabinet;return Object.assign({},base,{hs:(k.hs||base.hs).slice()});}
-function comboPlan(k){const cab=comboCab(k);const c=Object.assign({},cab,settings());return{c,cab,lv:planLevels(c,k.levels,id=>CATALOG.boxes[id],'auto')};}
 function drawCombos(){
   const list=CATALOG.combos.filter(k=>filter==='all'||k.cabinet===filter);
   $('combos').innerHTML=list.map(k=>{
-    const {c,cab,lv}=comboPlan(k),q=sumQty(lv,c);
-    const mix=Object.keys(q).map(id=>`<span><i style="background:var(${colorVar(id)})"></i>${esc(CATALOG.boxes[id].name.replace(/（.*）/,''))} ×${q[id]}</span>`).join('');
-    const books=lv.filter(x=>!x.id).length;
-    return `<button type="button" class="ccard" data-id="${k.id}" aria-current="${k.id===comboId}">
-      <span class="cab">${esc(cab.name)}</span><span class="ttl">${esc(k.title)}</span>
-      <span class="mix">${mix}${books?`<span><i style="background:var(--book)"></i>放書 ${books} 層</span>`:''}</span></button>`;
+    const p=comboPlan(k);if(!p)return '';
+    const q=sumQty(p.lv,p.c),tot=Object.values(q).reduce((a,b)=>a+b,0);
+    const dots=Object.keys(q).map(id=>`<i style="background:var(${colorVar(id)})"></i>`).join('')+(p.lv.some(x=>!x.id)?'<i style="background:var(--book)"></i>':'');
+    return `<button type="button" class="ccard" data-id="${esc(k.id)}" aria-current="${k.id===comboId}">
+      <span class="cab">${esc(p.cab.short||p.cab.name)}</span><span class="ttl">${esc(k.title)}</span>
+      <span class="meta"><span class="dots">${dots}</span><b>${tot} 盒</b></span></button>`;
   }).join('');
   $('combos').querySelectorAll('.ccard').forEach(bt=>bt.addEventListener('click',()=>{comboId=bt.dataset.id;sel=-1;drawCombos();render();setView('angle');}));
+  const cur=$('combos').querySelector('[aria-current="true"]');if(cur)cur.scrollIntoView({block:'nearest',inline:'nearest'});
 }
-function levelTable(lv,c,labelBox){
-  return `<div class="tw"><table class="lvtable"><thead><tr><th>層</th><th>淨高</th>${labelBox?'<th>放什麼</th>':''}<th>左右×前後×疊</th><th>數量${c.cols>1?`（${c.cols} 欄）`:''}</th><th>上方剩</th></tr></thead><tbody>${
+function levelTable(lv,c,withBox){
+  return `<div class="tw"><table class="lvtable"><thead><tr><th>層</th><th>淨高</th>${withBox?'<th>放什麼</th>':''}<th>左右×前後×疊</th><th>數量</th></tr></thead><tbody>${
     lv.map((x,i)=>{
-      if(!x.id) return `<tr class="${i===sel?'sel':''}" data-lv="${i}"><td>第 ${i+1} 層</td><td class="n">${f1(x.h)}</td>${labelBox?'<td><i class="sw" style="background:var(--book)"></i>放書</td>':''}<td class="n">–</td><td class="n">–</td><td class="n">–</td></tr>`;
-      const L=x.L,fitTxt=L.per?`${L.cols} × ${L.rows} × ${L.layers}`:(L.failH?`太矮（需 ${f1(L.unitH+c.tgap)}）`:'放不下');
-      return `<tr class="${L.per?'':'bad'} ${i===sel?'sel':''}" data-lv="${i}"><td>第 ${i+1} 層</td><td class="n">${f1(x.h)}</td>${labelBox?`<td><i class="sw" style="background:var(${colorVar(x.id)})"></i>${esc(x.b.name.replace(/（.*）/,''))}</td>`:''}<td class="n">${fitTxt}</td><td class="n">${L.per*c.cols}</td><td class="n">${L.per?f1(L.leftH):'–'}</td></tr>`;
+      if(!x.id)return `<tr class="${i===sel?'sel':''}" data-lv="${i}"><td>${i+1}</td><td class="n">${f1(x.h)}</td>${withBox?'<td><i class="sw" style="background:var(--book)"></i>放書</td>':''}<td class="n">–</td><td class="n">–</td></tr>`;
+      const L=x.L,fitTxt=L.per?`${L.cols}×${L.rows}×${L.layers}`:(L.failH?`太矮`:'放不下');
+      return `<tr class="${L.per?'':'bad'} ${i===sel?'sel':''}" data-lv="${i}"><td>${i+1}</td><td class="n">${f1(x.h)}</td>${withBox?`<td><i class="sw" style="background:var(${colorVar(x.id)})"></i>${esc(shortName(x.b.name))}</td>`:''}<td class="n">${fitTxt}</td><td class="n">${L.per*c.cols}</td></tr>`;
     }).join('')}</tbody></table></div>`;
 }
-function bindRows(){
-  $('result').querySelectorAll('tr[data-lv]').forEach(tr=>tr.addEventListener('click',()=>{sel=+tr.dataset.lv;render();setView('cell');}));
+function bindRows(root){
+  root.querySelectorAll('tr[data-lv]').forEach(tr=>tr.addEventListener('click',()=>{
+    sel=+tr.dataset.lv;render();setView('cell');
+    if(window.matchMedia('(max-width:899px)').matches)$('stage').scrollIntoView({behavior:'smooth',block:'start'});
+  }));
 }
+function buyLink(u,label,primary){return u?`<a class="buy ${primary?'primary':''}" href="${esc(u)}" target="_blank" rel="noopener sponsored">${label}</a>`:`<span class="buy off">${label}連結待補</span>`;}
+let lvOpen=null;
 function renderCombo(){
   const k=CATALOG.combos.find(x=>x.id===comboId)||CATALOG.combos[0];
-  const {c,cab,lv}=comboPlan(k),q=sumQty(lv,c),total=Object.values(q).reduce((a,b)=>a+b,0);
-  const bad=lv.filter(x=>x.id&&x.L.per===0).length, pro=lv.some(x=>x.id&&x.L.protrude>0);
-  const ids=Object.keys(q), allVerified=ids.length&&ids.every(id=>CATALOG.boxes[id].verified);
-  const chips=[bad?['warn',`${bad} 層放不下`]:pro?['warn','部分會凸出櫃外']:['ok','每層都放得下'],
-    allVerified?['ok','已實際買來放過']:['','尺寸計算，尚未實測']];
+  if(!k){$('result').innerHTML='<p class="note">還沒有推薦組合。</p>';$('shop').innerHTML='';return;}
+  comboId=k.id;
+  const p=comboPlan(k);if(!p){$('result').innerHTML='<p class="note">這個組合的櫃子資料不見了。</p>';return;}
+  const {c,cab,lv}=p,q=sumQty(lv,c),ids=Object.keys(q),total=Object.values(q).reduce((a,b)=>a+b,0);
+  const bad=lv.filter(x=>x.id&&x.L.per===0).length,pro=lv.some(x=>x.id&&x.L.protrude>0);
+  const allV=ids.length&&ids.every(id=>CATALOG.boxes[id].verified);
+  const chips=[bad?['warn',`${bad} 層放不下`]:pro?['warn','部分凸出櫃外']:['ok','每層都放得下'],allV?['ok','已實測']:['','尺寸計算']];
+  const cm=mediaOf(k);
   $('result').innerHTML=`
-    <div class="rhead"><span class="cab">${esc(cab.name)}</span><h2>${esc(k.title)}</h2>${k.note?`<p>${esc(k.note)}</p>`:''}</div>
-    <div class="total">這個組合總共要買 <b>${total}</b> 個收納盒</div>
-    <div class="chips">${chips.map(([t,s])=>`<span class="chip ${t}">${s}</span>`).join('')}</div>
-    ${levelTable(lv,c,true)}`;
-  bindRows();
+    <div class="rhead"><span>${esc(cab.name)}</span>${chips.map(([t,s])=>`<span class="chip ${t}">${s}</span>`).join('')}</div>
+    <h2>${esc(k.title)}</h2>
+    ${k.note?`<p class="note">${esc(k.note)}</p>`:''}
+    ${cm.length?`<div class="gallery">${cm.map((m,i)=>`<button type="button" class="gthumb" data-i="${i}" aria-label="看第 ${i+1} 個">${thumbHTML(m)}${m.type!=='image'?'<span class="play">▶ 影片</span>':''}</button>`).join('')}</div>`:''}
+    <div class="total">這組要買 <b>${total}</b> 個收納盒</div>`;
+  $('result').querySelectorAll('.gthumb').forEach(bt=>bt.addEventListener('click',()=>openLightbox(cm,+bt.dataset.i)));
+
   const items=ids.map(id=>{
-    const b=CATALOG.boxes[id],ph=b.photos&&b.photos[0];
-    const link=(u,label,primary)=>u?`<a class="buy ${primary?'primary':''}" href="${esc(u)}" target="_blank" rel="noopener sponsored">${label}</a>`:`<span class="buy off">${label}連結待補</span>`;
+    const b=CATALOG.boxes[id],m=mediaOf(b),first=m[0];
     return `<div class="item">
-      <div class="photo"><span class="sw" style="background:var(${colorVar(id)})"></span>${ph?`<img src="${esc(ph)}" alt="${esc(b.name)} 實拍">`:'實拍照片待補'}</div>
+      <button type="button" class="ithumb" data-box="${esc(id)}" ${m.length?'':'disabled'} aria-label="看 ${esc(b.name)} 的照片">
+        <span class="sw" style="background:var(${colorVar(id)})"></span>
+        ${first?thumbHTML(first):'實拍<br>待補'}
+        ${m.length>1?`<span class="more">+${m.length-1}</span>`:first&&first.type!=='image'?'<span class="more">▶</span>':''}
+      </button>
       <div class="ibody">
         <span class="badge ${b.verified?'v':'c'}">${b.verified?'已實測':'尺寸計算'}</span>
         <span class="iname">${esc(b.name)}</span>
         <span class="ispec">${spec(b)}</span>
-        <span class="iqty">這個組合需要 <b>${q[id]}</b> 個</span>
-        <div class="buys">${link(b.links&&b.links.shopee,'蝦皮',true)}${link(b.links&&b.links.coupang,'酷澎',false)}</div>
+        <span class="iqty">需要 <b>${q[id]}</b> 個</span>
+        <div class="buys">${buyLink(b.links&&b.links.shopee,'蝦皮',true)}${buyLink(b.links&&b.links.coupang,'酷澎',false)}</div>
       </div></div>`;}).join('');
-  $('tables').innerHTML=`
-    <div class="card shop"><h3>購買清單</h3><div class="items">${items}</div></div>
-    <p class="foot">購買連結為分潤連結，透過連結購買，本站可能獲得分潤，不影響你的購買價格。櫃子與盒子尺寸目前為示意值，購買前請量一下自家櫃子的層高。</p>`;
+  if(lvOpen===null)lvOpen=window.matchMedia('(min-width:900px)').matches;
+  $('shop').innerHTML=`<h3>購買清單</h3><div class="items">${items||'<p class="note">這組沒有用到收納盒。</p>'}</div>
+    <details class="lv" id="lvDetails" ${lvOpen?'open':''}><summary>每層怎麼擺</summary>${levelTable(lv,c,true)}</details>`;
+  $('lvDetails').addEventListener('toggle',e=>{lvOpen=e.target.open;});
+  $('shop').querySelectorAll('.ithumb[data-box]').forEach(bt=>bt.addEventListener('click',()=>openLightbox(mediaOf(CATALOG.boxes[bt.dataset.box]),0)));
+  bindRows($('shop'));
+  $('barQty').textContent=total;
   build(c,lv);
 }
 
 /* ---------- lab mode ---------- */
 let hs=[];
-const LABCAB=Object.assign({},CATALOG.cabinets,{custom:{name:'自訂櫃子',w:60,d:30,cols:1,hs:[30,30,30]}});
-const LABBOX=Object.assign({},CATALOG.boxes,{custom:{name:'自訂收納盒',tw:30,td:20,bw:28,bd:18,h:15,hasLid:false,lw:30.5,ld:20.5,lh:1.5,lidOn:false,stack:false,nest:0}});
-function fillSelect(s,obj){for(const k in obj){const o=document.createElement('option');o.value=k;o.textContent=obj[k].name;s.appendChild(o);}}
-fillSelect($('cabPreset'),LABCAB);fillSelect($('boxPreset'),LABBOX);
+const LABCAB=()=>Object.assign({},CATALOG.cabinets,{custom:{name:'自訂櫃子',w:60,d:30,cols:1,hs:[30,30,30]}});
+const LABBOX=()=>Object.assign({},CATALOG.boxes,{custom:{name:'自訂收納盒',tw:30,td:20,bw:28,bd:18,h:15,hasLid:false,lw:30.5,ld:20.5,lh:1.5,lidOn:false,stack:false,nest:0}});
+function fillSelect(s,obj,extra){const keep=s.value;s.innerHTML=(extra||'')+Object.keys(obj).map(k=>`<option value="${esc(k)}">${esc(obj[k].name)}</option>`).join('');if([...s.options].some(o=>o.value===keep))s.value=keep;}
 function drawLevels(){
   const box=$('levels');box.innerHTML='';
   hs.forEach((h,i)=>{
     const r=document.createElement('div');r.className='lvrow'+(i===sel?' sel':'');
-    r.innerHTML=`<span>第 ${i+1} 層</span><div class="unit" data-u="cm"><input id="lv${i}" type="number" step="0.1" min="3" value="${h}" aria-label="第 ${i+1} 層淨高"></div>
+    r.innerHTML=`<span>第 ${i+1} 層</span><div class="unit" data-u="cm"><input id="lv${i}" type="number" inputmode="decimal" step="0.1" min="3" value="${h}" aria-label="第 ${i+1} 層淨高"></div>
       <button type="button" class="iconbtn" aria-label="刪除第 ${i+1} 層" ${hs.length<=1?'disabled':''}>×</button>`;
     const inp=r.querySelector('input');
-    inp.addEventListener('input',()=>{const v=parseFloat(inp.value);hs[i]=isFinite(v)?v:0;$('cabPreset').value='custom';schedule();});
+    inp.addEventListener('input',()=>{const v=parseFloat(inp.value);hs[i]=isFinite(v)?v:0;$('cabPreset').value='custom';labChanged();});
     inp.addEventListener('focus',()=>{sel=i;document.querySelectorAll('.lvrow').forEach((x,k)=>x.classList.toggle('sel',k===i));render();if(curView==='cell')setView('cell');});
-    r.querySelector('button').addEventListener('click',()=>{hs.splice(i,1);if(sel>=hs.length)sel=hs.length-1;$('cabPreset').value='custom';drawLevels();render();setView(curView);});
+    r.querySelector('button').addEventListener('click',()=>{hs.splice(i,1);if(sel>=hs.length)sel=hs.length-1;$('cabPreset').value='custom';drawLevels();labChanged(true);});
     box.appendChild(r);
   });
-  $('addLv').disabled=hs.length>=MAXLV;
+  $('addLv').disabled=hs.length>=MAXLV;drawComboLevels();
 }
-$('addLv').addEventListener('click',()=>{if(hs.length>=MAXLV)return;hs.push(hs[hs.length-1]||30);$('cabPreset').value='custom';drawLevels();render();setView(curView);});
-function applyCab(k){const c=LABCAB[k];$('cw').value=c.w;$('cd').value=c.d;$('ccols').value=c.cols;hs=c.hs.slice();sel=-1;drawLevels();}
-function applyBox(k){const b=LABBOX[k];$('bname').value=b.name;$('btw').value=b.tw;$('btd').value=b.td;$('bbw').value=b.bw;$('bbd').value=b.bd;$('bh').value=b.h;
-  $('bhasLid').checked=b.hasLid;$('blidOn').checked=b.lidOn;$('blw').value=b.lw;$('bld').value=b.ld;$('blh').value=b.lh;$('bstack').checked=b.stack;$('bnest').value=b.nest;}
-$('cabPreset').value='billy80';applyCab('billy80');$('boxPreset').value='tote';applyBox('tote');
-$('cover').value=DEF.over;$('gap').value=DEF.gap;$('sgap').value=DEF.sgap;$('tgap').value=DEF.tgap;
+$('addLv').addEventListener('click',()=>{if(hs.length>=MAXLV)return;hs.push(hs[hs.length-1]||30);$('cabPreset').value='custom';drawLevels();labChanged(true);});
+function applyCab(k){const c=LABCAB()[k];if(!c)return;$('cw').value=c.w;$('cd').value=c.d;$('ccols').value=c.cols;hs=c.hs.slice();sel=-1;drawLevels();}
+function applyBoxObj(b){$('bname').value=b.name;$('btw').value=b.tw;$('btd').value=b.td;$('bbw').value=b.bw;$('bbd').value=b.bd;$('bh').value=b.h;
+  $('bhasLid').checked=!!b.hasLid;$('blidOn').checked=!!b.lidOn;$('blw').value=b.lw;$('bld').value=b.ld;$('blh').value=b.lh;$('bstack').checked=!!b.stack;$('bnest').value=b.nest||0;syncLid();}
 function readLabCab(){return Object.assign({w:num('cw'),d:num('cd'),cols:Math.max(1,Math.min(6,Math.round(num('ccols'))||1)),hs:hs.map(h=>Math.max(0,h))},settings());}
 function readLabBox(){const hasLid=$('bhasLid').checked;return{name:$('bname').value.trim()||'收納盒',tw:num('btw'),td:num('btd'),bw:num('bbw'),bd:num('bbd'),h:num('bh'),
-  hasLid,lidOn:hasLid&&$('blidOn').checked,lw:num('blw'),ld:num('bld'),lh:Math.max(0,num('blh')),stack:$('bstack').checked,nest:Math.max(0,num('bnest'))};}
+  hasLid,lidOn:hasLid&&$('blidOn').checked,lw:hasLid?num('blw'):0,ld:hasLid?num('bld'):0,lh:hasLid?Math.max(0,num('blh')):0,stack:$('bstack').checked,nest:Math.max(0,num('bnest'))};}
+function syncLid(){$('lidbox').hidden=!$('bhasLid').checked;}
 function renderLab(){
+  if(previewCombo){
+    const p=comboPlan(previewCombo);
+    if(p){const q=sumQty(p.lv,p.c),tot=Object.values(q).reduce((a,b)=>a+b,0);
+      $('result').innerHTML=`<div class="rhead"><span>組合預覽</span></div><h2>${esc(previewCombo.title||'（未命名組合）')}</h2><div class="total">共 <b>${tot}</b> 盒</div>${levelTable(p.lv,p.c,true)}`;
+      bindRows($('result'));$('shop').hidden=true;build(p.c,p.lv);return;}
+  }
+  $('shop').hidden=false;
   const c=readLabCab(),b=readLabBox(),lv=planLevels(c,c.hs.map(()=>'lab'),()=>b,$('orient').value);
   const q=sumQty(lv,c).lab||0,K=layout(c,b,lv[0].L.o,Math.max(...c.hs,0));
   const notes=[];
@@ -439,32 +566,162 @@ function renderLab(){
   if(K.failD)notes.push(['w',`盒子深 ${f1(K.fd)} cm，比內深多 ${f1(K.fd-c.d)} cm。`]);
   if(K.nestBlock)notes.push(['w','上寬下窄又沒蓋著，疊上去會套進下面那盒，所以不堆疊。']);
   if(!K.failW&&!K.failD)notes.push(['',`每層左右 ${K.cols} 個、前後 ${K.rows} 排，方向：${K.o?'轉 90°':'正放'}。`]);
-  $('result').innerHTML=`
-    <div class="rhead"><span class="cab">測試模式</span><h2>${esc(b.name)}</h2></div>
-    <div class="total">全櫃共 <b>${q}</b> 盒</div>
-    ${levelTable(lv,c,false)}
+  $('result').innerHTML=`<div class="rhead"><span>測試模式</span></div><h2>${esc(b.name)}</h2>
+    <div class="total">全櫃共 <b>${q}</b> 盒</div>${levelTable(lv,c,false)}
     <ul class="notes">${notes.map(([k,t])=>`<li class="${k}">${t}</li>`).join('')}</ul>`;
-  bindRows();
+  bindRows($('result'));
   const rows=[['上緣外尺寸',`${f1(b.tw)} × ${f1(b.td)}`],['底部外尺寸',`${f1(b.bw)} × ${f1(b.bd)}`],['盒高',f1(b.h)],
-    ['蓋子',b.hasLid?`${f1(b.lw)} × ${f1(b.ld)} × ${f1(b.lh)}`:'無'],['蓋著的總高',b.hasLid?f1(b.h+b.lh):'–'],
-    ['單邊內縮',K.tapered?f1(Math.max(b.tw-b.bw,b.td-b.bd)/2):'0（直筒）'],['每多疊一層增加',K.canStack?f1(K.pitch):'不可堆疊'],
-    ['外部體積估算（公升）',f1(bodyVol(b)/1000)],['各層淨高（上→下）',c.hs.map(f1).join('／')]];
-  $('tables').innerHTML=`<div class="card"><h2><span>尺寸表</span></h2><div class="tw"><table><thead><tr><th>項目</th><th>數值（cm）</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r[0]}</td><td class="n">${r[1]}</td></tr>`).join('')}</tbody></table></div></div>`;
+    ['蓋子',b.hasLid?`${f1(b.lw)} × ${f1(b.ld)} × ${f1(b.lh)}`:'無'],['單邊內縮',K.tapered?f1(Math.max(b.tw-b.bw,b.td-b.bd)/2):'0（直筒）'],
+    ['每多疊一層增加',K.canStack?f1(K.pitch):'不可堆疊'],['外部體積（公升）',f1(bodyVol(b)/1000)]];
+  $('shop').innerHTML=`<h3>尺寸表</h3><div class="tw"><table><tbody>${rows.map(r=>`<tr><td>${r[0]}</td><td class="n">${r[1]}</td></tr>`).join('')}</tbody></table></div>`;
   build(c,lv,{lab:'--box1'});
 }
-$('exportBtn').addEventListener('click',()=>{
-  const c=readLabCab(),b=readLabBox(),id='box'+Date.now().toString(36).slice(-4);
-  const out={box:Object.assign({id},b,{photos:[],links:{shopee:'',coupang:''},verified:false}),
-    combo:{id:'combo-'+id,title:'（填組合名稱）',cabinet:$('cabPreset').value!=='custom'?$('cabPreset').value:{name:'（填櫃子名稱）',short:'',w:c.w,d:c.d,cols:c.cols,hs:c.hs},
-      hs:c.hs,levels:c.hs.map(()=>id),note:''}};
-  const t=JSON.stringify(out,null,2),done=()=>{$('exported').hidden=false;setTimeout(()=>$('exported').hidden=true,1600);};
-  try{navigator.clipboard.writeText(t).then(done,()=>fallback(t,done));}catch(e){fallback(t,done);}
+function labChanged(now){previewCombo=null;now?render():schedule();}
+
+/* ---------- publish (GitHub) ---------- */
+let token=store.get('sideby_gh_token')||'';
+$('ghToken').value=token;$('ghRemember').checked=!!token;
+$('ghToken').addEventListener('input',()=>{token=$('ghToken').value.trim();if($('ghRemember').checked)store.set('sideby_gh_token',token||null);});
+$('ghRemember').addEventListener('change',()=>store.set('sideby_gh_token',$('ghRemember').checked&&token?token:null));
+function status(t,cls){$('pubStatus').textContent=t;$('pubStatus').className='status '+(cls||'');}
+async function gh(path,opt){
+  opt=opt||{};
+  const r=await fetch('https://api.github.com/repos/'+REPO+path,Object.assign({},opt,{headers:Object.assign({Authorization:'Bearer '+token,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'},opt.headers||{})}));
+  if(!r.ok){let m='';try{m=(await r.json()).message;}catch(e){}
+    if(r.status===401)throw new Error('金鑰無效或過期，請重新產生。');
+    if(r.status===403||r.status===404)throw new Error('金鑰沒有寫入 sideby 的權限（需要 Contents: Read and write）。');
+    throw new Error(`GitHub 回應 ${r.status}：${m}`);}
+  return r.status===204?null:r.json();
+}
+function b64Bytes(u8){let s='';for(let i=0;i<u8.length;i+=0x8000)s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000));return btoa(s);}
+const b64Text=t=>b64Bytes(new TextEncoder().encode(t));
+async function freshCatalog(){return gh('/contents/catalog.json?ref=main',{headers:{Accept:'application/vnd.github.raw+json'}});}
+async function commitFiles(files,message){
+  const ref=await gh('/git/ref/heads/main'),base=ref.object.sha,cm=await gh('/git/commits/'+base),tree=[];
+  for(let i=0;i<files.length;i++){status(`上傳中 ${i+1}/${files.length}…`);
+    const b=await gh('/git/blobs',{method:'POST',body:JSON.stringify({content:files[i].b64,encoding:'base64'})});
+    tree.push({path:files[i].path,mode:'100644',type:'blob',sha:b.sha});}
+  const t=await gh('/git/trees',{method:'POST',body:JSON.stringify({base_tree:cm.tree.sha,tree})});
+  const c=await gh('/git/commits',{method:'POST',body:JSON.stringify({message,tree:t.sha,parents:[base]})});
+  await gh('/git/refs/heads/main',{method:'PATCH',body:JSON.stringify({sha:c.sha})});
+}
+async function imageToJpeg(file){
+  const bmp=await createImageBitmap(file,{imageOrientation:'from-image'}).catch(()=>createImageBitmap(file));
+  const s=Math.min(1,1600/Math.max(bmp.width,bmp.height)),cv=document.createElement('canvas');
+  cv.width=Math.round(bmp.width*s);cv.height=Math.round(bmp.height*s);cv.getContext('2d').drawImage(bmp,0,0,cv.width,cv.height);
+  const blob=await new Promise(r=>cv.toBlob(r,'image/jpeg',0.84));return new Uint8Array(await blob.arrayBuffer());
+}
+function ytId(u){const m=String(u).trim().match(/(?:youtu\.be\/|shorts\/|embed\/|[?&]v=)([A-Za-z0-9_-]{11})/);return m?m[1]:null;}
+const stamp=()=>Date.now().toString(36);
+
+/* pending media for the two forms */
+const pend={box:{keep:[],files:[]},combo:{keep:[],files:[]}};
+function drawMedia(kind){
+  const P=pend[kind],el=$(kind==='box'?'boxMedia':'comboMedia');
+  const kept=P.keep.map((m,i)=>`<div class="mitem">${thumbHTML(m)}<button type="button" data-k="${i}" aria-label="移除">×</button></div>`);
+  const fresh=P.files.map((f,i)=>`<div class="mitem">${f.type.startsWith('image/')?`<img src="${URL.createObjectURL(f)}" alt="">`:`<span>${esc(f.name)}</span>`}<span class="new">新</span><button type="button" data-f="${i}" aria-label="移除">×</button></div>`);
+  el.innerHTML=kept.concat(fresh).join('');
+  el.querySelectorAll('button[data-k]').forEach(b=>b.addEventListener('click',()=>{P.keep.splice(+b.dataset.k,1);drawMedia(kind);}));
+  el.querySelectorAll('button[data-f]').forEach(b=>b.addEventListener('click',()=>{P.files.splice(+b.dataset.f,1);drawMedia(kind);}));
+}
+function addFiles(kind,input){
+  for(const f of input.files){
+    if(f.type.startsWith('video/')&&f.size>VIDEO_MAX){status(`「${f.name}」超過 25 MB，建議上傳到 YouTube Shorts 後貼連結。`,'err');continue;}
+    if(f.type==='video/quicktime')status('提醒：iPhone 的 .mov 影片在部分 Android 手機播不出來，放 YouTube 會比較保險。');
+    pend[kind].files.push(f);
+  }
+  input.value='';drawMedia(kind);
+}
+$('boxFiles').addEventListener('change',e=>addFiles('box',e.target));
+$('comboFiles').addEventListener('change',e=>addFiles('combo',e.target));
+async function buildMedia(kind,prefix,ytText){
+  const P=pend[kind],files=[],media=P.keep.slice();
+  for(let i=0;i<P.files.length;i++){const f=P.files[i];status(`處理檔案 ${i+1}/${P.files.length}…`);
+    if(f.type.startsWith('image/')){const path=`media/${prefix}-${stamp()}-${i}.jpg`;files.push({path,b64:b64Bytes(await imageToJpeg(f))});media.push({type:'image',src:path});}
+    else{const ext=(f.name.split('.').pop()||'mp4').toLowerCase().replace(/[^a-z0-9]/g,'')||'mp4';const path=`media/${prefix}-${stamp()}-${i}.${ext}`;
+      files.push({path,b64:b64Bytes(new Uint8Array(await f.arrayBuffer()))});media.push({type:'video',src:path});}}
+  String(ytText).split(/\s+/).map(ytId).filter(Boolean).forEach(id=>{if(!media.some(m=>m.type==='youtube'&&m.id===id))media.push({type:'youtube',id});});
+  return{files,media};
+}
+function refreshPubSelects(){
+  fillSelect($('editBox'),CATALOG.boxes,'<option value="__new">新增一個盒子</option>');
+  $('editCombo').innerHTML='<option value="__new">新增一個組合</option>'+CATALOG.combos.map(k=>`<option value="${esc(k.id)}">${esc(k.title)}</option>`).join('');
+  const prevCab=$('cCab').value;
+  fillSelect($('cCab'),CATALOG.cabinets,'<option value="__lab">用上方測試中的櫃子尺寸</option>');
+  if(!prevCab&&Object.keys(CATALOG.cabinets).length)$('cCab').value=Object.keys(CATALOG.cabinets)[0];
+  fillSelect($('cabPreset'),LABCAB());fillSelect($('boxPreset'),LABBOX());
+  drawComboLevels();
+}
+$('editBox').addEventListener('change',()=>{
+  const id=$('editBox').value,b=CATALOG.boxes[id];
+  pend.box={keep:b?mediaOf(b):[],files:[]};
+  if(b){applyBoxObj(b);$('boxPreset').value=id;$('shopee').value=(b.links&&b.links.shopee)||'';$('coupang').value=(b.links&&b.links.coupang)||'';$('verified').checked=!!b.verified;labChanged(true);}
+  else{$('shopee').value='';$('coupang').value='';$('verified').checked=false;}
+  $('boxYT').value='';drawMedia('box');
 });
-function fallback(t,done){const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done();}catch(e){}ta.remove();}
+let comboLevels=[];
+function comboHs(){const v=$('cCab').value;return v==='__lab'?hs.slice():((CATALOG.cabinets[v]||{}).hs||[]).slice();}
+function drawComboLevels(){
+  const H=comboHs(),opts='<option value="">放書／空著</option>'+Object.keys(CATALOG.boxes).map(k=>`<option value="${esc(k)}">${esc(CATALOG.boxes[k].name)}</option>`).join('');
+  comboLevels=H.map((_,i)=>comboLevels[i]!==undefined?comboLevels[i]:(comboLevels[comboLevels.length-1]||''));
+  $('cLevels').innerHTML=H.map((h,i)=>`<div class="clvrow"><span>第 ${i+1} 層 · ${f1(h)}</span><select id="cl${i}" aria-label="第 ${i+1} 層放什麼">${opts}</select></div>`).join('');
+  H.forEach((_,i)=>{const s=$('cl'+i);s.value=comboLevels[i]||'';s.addEventListener('change',()=>{comboLevels[i]=s.value;if(previewCombo)doPreview();});});
+}
+$('cCab').addEventListener('change',()=>{drawComboLevels();if(previewCombo)doPreview();});
+$('editCombo').addEventListener('change',()=>{
+  const k=CATALOG.combos.find(x=>x.id===$('editCombo').value);
+  pend.combo={keep:k?mediaOf(k):[],files:[]};
+  if(k){$('cTitle').value=k.title||'';$('cNote').value=k.note||'';
+    if(typeof k.cabinet==='string'&&CATALOG.cabinets[k.cabinet])$('cCab').value=k.cabinet;
+    else{$('cCab').value='__lab';const cb=comboCab(k);if(cb){$('cw').value=cb.w;$('cd').value=cb.d;$('ccols').value=cb.cols;hs=cb.hs.slice();drawLevels();}}
+    comboLevels=k.levels.map(x=>x||'');}
+  else{$('cTitle').value='';$('cNote').value='';comboLevels=[];}
+  $('comboYT').value='';drawComboLevels();drawMedia('combo');
+});
+function draftCombo(){
+  const v=$('cCab').value,H=comboHs();
+  const cabinet=v==='__lab'?{name:$('cabPreset').value!=='custom'&&CATALOG.cabinets[$('cabPreset').value]?CATALOG.cabinets[$('cabPreset').value].name:'自訂櫃子',short:'自訂',w:num('cw'),d:num('cd'),cols:Math.max(1,Math.round(num('ccols'))||1),hs:H}:v;
+  return{title:$('cTitle').value.trim(),note:$('cNote').value.trim(),cabinet,levels:H.map((_,i)=>comboLevels[i]||null)};
+}
+function doPreview(){previewCombo=draftCombo();render();setView('angle');}
+$('previewCombo').addEventListener('click',()=>{doPreview();$('stage').scrollIntoView({behavior:'smooth',block:'start'});});
+async function withLock(btn,fn){
+  if(!token){status('請先填 GitHub 金鑰。','err');$('ghToken').focus();return;}
+  document.querySelectorAll('#pub .btn').forEach(b=>b.disabled=true);
+  try{await fn();}catch(e){console.error(e);status(e.message||String(e),'err');}
+  finally{document.querySelectorAll('#pub .btn').forEach(b=>b.disabled=false);}
+}
+$('saveBox').addEventListener('click',()=>withLock($('saveBox'),async()=>{
+  const b=readLabBox();if(!b.name||b.name==='收納盒'){status('請先填盒子名稱。','err');$('bname').focus();return;}
+  status('讀取最新資料…');const cat=await freshCatalog();cat.boxes=cat.boxes||{};
+  let id=$('editBox').value;if(id==='__new')id='box-'+stamp();
+  const {files,media}=await buildMedia('box',id,$('boxYT').value);
+  cat.boxes[id]=Object.assign({},b,{media,links:{shopee:$('shopee').value.trim(),coupang:$('coupang').value.trim()},verified:$('verified').checked});
+  delete cat.boxes[id].photos;
+  files.push({path:'catalog.json',b64:b64Text(JSON.stringify(cat,null,2)+'\n')});
+  await commitFiles(files,`${$('editBox').value==='__new'?'新增':'更新'}收納盒：${b.name}`);
+  CATALOG=cat;pend.box={keep:media,files:[]};$('boxYT').value='';
+  refreshPubSelects();$('editBox').value=id;drawMedia('box');drawFilters();drawCombos();
+  status(`已發佈「${b.name}」，約 1 分鐘後網站會更新。`,'ok');
+}));
+$('saveCombo').addEventListener('click',()=>withLock($('saveCombo'),async()=>{
+  const d=draftCombo();if(!d.title){status('請先填組合名稱。','err');$('cTitle').focus();return;}
+  if(!d.levels.some(Boolean)){status('至少要有一層放收納盒。','err');return;}
+  status('讀取最新資料…');const cat=await freshCatalog();cat.combos=cat.combos||[];
+  let id=$('editCombo').value;if(id==='__new')id='combo-'+stamp();
+  const {files,media}=await buildMedia('combo',id,$('comboYT').value);
+  const combo=Object.assign({id},d,{media});
+  const i=cat.combos.findIndex(x=>x.id===id);if(i>=0)cat.combos[i]=combo;else cat.combos.push(combo);
+  files.push({path:'catalog.json',b64:b64Text(JSON.stringify(cat,null,2)+'\n')});
+  await commitFiles(files,`${i>=0?'更新':'新增'}推薦組合：${d.title}`);
+  CATALOG=cat;pend.combo={keep:media,files:[]};$('comboYT').value='';
+  refreshPubSelects();$('editCombo').value=id;drawMedia('combo');drawFilters();drawCombos();
+  status(`已發佈組合「${d.title}」，約 1 分鐘後網站會更新。`,'ok');
+}));
 
 /* ---------- 3D ---------- */
 const stage=$('stage');
-let renderer,scene,camera,controls,group,mats,labels=[],dims=null,showDims=true;
+let renderer,scene,camera,controls,group,mats,labels=[],dims=null,showDims=true,boxMats=[];
 function initGL(){
   if(!window.THREE||!THREE.OrbitControls)return false;
   try{renderer=new THREE.WebGLRenderer({antialias:true});}catch(e){return false;}
@@ -480,9 +737,17 @@ function initGL(){
     edge:new THREE.LineBasicMaterial({transparent:true,opacity:.55}),woodEdge:new THREE.LineBasicMaterial({transparent:true,opacity:.25}),
     dim:new THREE.LineBasicMaterial({depthTest:false,transparent:true}),dimWarn:new THREE.LineBasicMaterial({depthTest:false,transparent:true}),
     selEdge:new THREE.LineBasicMaterial({depthTest:false,transparent:true,opacity:.9})};
-  colorize();
-  group=new THREE.Group();scene.add(group);
-  controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.12;
+  colorize();group=new THREE.Group();scene.add(group);
+  controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.12;controls.enablePan=false;
+  let down=null;const cvs=renderer.domElement;
+  cvs.addEventListener('pointerdown',e=>{down=[e.clientX,e.clientY];});
+  cvs.addEventListener('pointerup',e=>{
+    if(!down||!dims||Math.hypot(e.clientX-down[0],e.clientY-down[1])>6)return;down=null;
+    const r=cvs.getBoundingClientRect(),v=new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1),rc=new THREE.Raycaster();
+    rc.setFromCamera(v,camera);const hit=rc.intersectObjects(group.children.filter(o=>o.isMesh),false)[0];if(!hit)return;
+    const y=hit.point.y,i=dims.floors.findIndex((f,k)=>y>=f-0.9&&y<=f+dims.c.hs[k]+0.9);if(i<0)return;
+    if(sel===i){sel=-1;curView='angle';}else{sel=i;curView='cell';}render();setView(curView);
+  });
   new ResizeObserver(resize).observe(stage);resize();
   (function loop(){requestAnimationFrame(loop);controls.update();renderer.render(scene,camera);})();
   return true;
@@ -493,128 +758,113 @@ function colorize(){
   mats.edge.color.set(css('--edge'));mats.woodEdge.color.set(css('--edge'));
   mats.dim.color.set(css('--accent'));mats.dimWarn.color.set(css('--warn'));mats.selEdge.color.set(css('--accent'));
 }
-function resize(){const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();scaleLabels();}
-function scaleLabels(){if(!camera)return;const p=camera.projectionMatrix.elements[5]||3,hp=stage.clientHeight||500,s=22/hp*2/p;labels.forEach(sp=>sp.scale.set(s*sp.userData.aspect,s,1));}
-function taper(tw,td,bw,bd,h){
-  const g=new THREE.BoxGeometry(1,1,1),p=g.attributes.position;
+function resize(){const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();scaleLabels();if(dims)setView(curView);}
+function scaleLabels(){if(!camera)return;const p=camera.projectionMatrix.elements[5]||3,hp=stage.clientHeight||500,s=(hp<420?19:22)/hp*2/p;labels.forEach(sp=>sp.scale.set(s*sp.userData.aspect,s,1));}
+function taper(tw,td,bw,bd,h){const g=new THREE.BoxGeometry(1,1,1),p=g.attributes.position;
   for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i),top=y>0;p.setXYZ(i,Math.sign(x)*(top?tw:bw)/2,top?h:0,Math.sign(z)*(top?td:bd)/2);}
-  g.computeVertexNormals();return g;
-}
-function addMesh(geo,mat,x,y,z,edgeMat){
-  const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);group.add(m);
-  const l=new THREE.LineSegments(new THREE.EdgesGeometry(geo),edgeMat||mats.edge);l.position.copy(m.position);group.add(l);
-}
+  g.computeVertexNormals();return g;}
+function addMesh(geo,mat,x,y,z,edgeMat){const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);group.add(m);
+  const l=new THREE.LineSegments(new THREE.EdgesGeometry(geo),edgeMat||mats.edge);l.position.copy(m.position);group.add(l);}
 function makeLabel(text,pos,warn){
-  const fs=44,cv=document.createElement('canvas'),ctx=cv.getContext('2d');
-  const font=`600 ${fs}px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif`;
-  ctx.font=font;const tw=ctx.measureText(text).width;cv.width=Math.ceil(tw+fs*0.9);cv.height=Math.ceil(fs*1.55);
-  ctx.font=font;const r=cv.height/2;
+  const fs=44,cv=document.createElement('canvas'),ctx=cv.getContext('2d'),font=`600 ${fs}px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif`;
+  ctx.font=font;const tw=ctx.measureText(text).width;cv.width=Math.ceil(tw+fs*0.9);cv.height=Math.ceil(fs*1.55);ctx.font=font;const r=cv.height/2;
   ctx.beginPath();ctx.moveTo(r,2);ctx.lineTo(cv.width-r,2);ctx.arc(cv.width-r,r,r-2,-Math.PI/2,Math.PI/2);ctx.lineTo(r,cv.height-2);ctx.arc(r,r,r-2,Math.PI/2,Math.PI*1.5);ctx.closePath();
-  ctx.fillStyle=warn?css('--panel'):css('--accent');ctx.fill();
-  if(warn){ctx.lineWidth=4;ctx.strokeStyle=css('--warn');ctx.stroke();}
+  ctx.fillStyle=warn?css('--panel'):css('--accent');ctx.fill();if(warn){ctx.lineWidth=4;ctx.strokeStyle=css('--warn');ctx.stroke();}
   ctx.fillStyle=warn?css('--warn'):css('--accent-ink');ctx.textBaseline='middle';ctx.textAlign='center';ctx.fillText(text,cv.width/2,cv.height/2+2);
   const tex=new THREE.CanvasTexture(cv);tex.minFilter=THREE.LinearFilter;
   const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,depthTest:false,sizeAttenuation:false,transparent:true}));
-  sp.renderOrder=1000;sp.userData.aspect=cv.width/cv.height;sp.position.copy(pos);group.add(sp);labels.push(sp);
-}
-function dimLine(a,b,text,warn,at){
-  const v=new THREE.Vector3().subVectors(b,a);if(v.length()<0.05)return;
-  const vert=Math.abs(v.y)>Math.max(Math.abs(v.x),Math.abs(v.z));
-  const tk=(vert?new THREE.Vector3(1,0,0):new THREE.Vector3(0,1,0)).multiplyScalar(1.2);
+  sp.renderOrder=1000;sp.userData.aspect=cv.width/cv.height;sp.position.copy(pos);group.add(sp);labels.push(sp);}
+function dimLine(a,b,text,warn,at){const v=new THREE.Vector3().subVectors(b,a);if(v.length()<0.05)return;
+  const vert=Math.abs(v.y)>Math.max(Math.abs(v.x),Math.abs(v.z)),tk=(vert?new THREE.Vector3(1,0,0):new THREE.Vector3(0,1,0)).multiplyScalar(1.2);
   const geo=new THREE.BufferGeometry().setFromPoints([a,b,a.clone().add(tk),a.clone().sub(tk),b.clone().add(tk),b.clone().sub(tk)]);
-  const ln=new THREE.LineSegments(geo,warn?mats.dimWarn:mats.dim);ln.renderOrder=999;group.add(ln);
-  makeLabel(text,at||a.clone().add(b).multiplyScalar(.5),warn);
-}
+  const ln=new THREE.LineSegments(geo,warn?mats.dimWarn:mats.dim);ln.renderOrder=999;group.add(ln);makeLabel(text,at||a.clone().add(b).multiplyScalar(.5),warn);}
 function clearGroup(){labels=[];while(group.children.length){const o=group.children.pop();o.geometry&&o.geometry.dispose();if(o.isSprite){o.material.map.dispose();o.material.dispose();}}
   boxMats.forEach(m=>m.dispose());boxMats=[];}
-let boxMats=[];
-function matFor(varName,dark){const m=new THREE.MeshStandardMaterial({roughness:dark?.5:.6});m.color.set(css(varName));if(dark)m.color.multiplyScalar(.72);boxMats.push(m);return m;}
-
+function matFor(v,dark){const m=new THREE.MeshStandardMaterial({roughness:dark?.5:.6});m.color.set(css(v));if(dark)m.color.multiplyScalar(.72);boxMats.push(m);return m;}
 let firstBuild=true;
 function build(c,lv,colorMap){
-  if(!renderer)return;
-  clearGroup();
-  const t=1.8,nc=c.cols,n=c.hs.length,D=c.d;
-  const W=nc*c.w+(nc+1)*t,H=c.hs.reduce((s,h)=>s+h+t,0)+t;
+  if(!renderer)return;clearGroup();
+  const t=1.8,nc=c.cols,n=c.hs.length,D=c.d,W=nc*c.w+(nc+1)*t,H=c.hs.reduce((s,h)=>s+h+t,0)+t;
   const floors=[];let y=t;for(let i=n-1;i>=0;i--){floors[i]=y;y+=c.hs[i]+t;}
   for(let i=0;i<n;i++)addMesh(new THREE.BoxGeometry(W,t,D),mats.wood,0,floors[i]-t/2,0,mats.woodEdge);
   addMesh(new THREE.BoxGeometry(W,t,D),mats.wood,0,H-t/2,0,mats.woodEdge);
   for(let j=0;j<=nc;j++){const outer=(j===0||j===nc);addMesh(new THREE.BoxGeometry(t,H,D),outer?mats.side:mats.wood,-W/2+t/2+j*(c.w+t),H/2,0,mats.woodEdge);}
   addMesh(new THREE.BoxGeometry(W,H,0.4),mats.wood,0,H/2,-D/2-0.2,mats.woodEdge);
-
+  const focus=sel>=0?sel:lv.findIndex(x=>x.id&&x.L.per>0);
   const cache={};
   const geoFor=(id,b,o,lidOn)=>{const key=id+'_'+o;if(cache[key])return cache[key];
-    const sw=o?(x=>[x[1],x[0]]):(x=>x);const[tw,td]=sw([b.tw,b.td]),[bw,bd]=sw([b.bw,b.bd]),[lw,ld]=sw([b.lw,b.ld]);
-    const cv=(colorMap&&colorMap[id])||colorVar(id);
+    const sw=o?(x=>[x[1],x[0]]):(x=>x),[tw,td]=sw([b.tw,b.td]),[bw,bd]=sw([b.bw,b.bd]),[lw,ld]=sw([b.lw,b.ld]),cv=(colorMap&&colorMap[id])||colorVar(id);
     return cache[key]={body:taper(tw,td,bw,bd,b.h),lid:lidOn&&b.lh>0?new THREE.BoxGeometry(lw,b.lh,ld):null,bm:matFor(cv,false),lm:matFor(cv,true)};};
-
   lv.forEach((x,i)=>{
     const y0=floors[i];
-    for(let j=0;j<nc;j++){
-      const x0=-W/2+t+j*(c.w+t);
-      if(!x.id){ // 書本
-        let bx=x0+0.4,k=0;const bh=[.82,.9,.76,.88,.8,.93,.85];
+    for(let j=0;j<nc;j++){const x0=-W/2+t+j*(c.w+t);
+      if(!x.id){let bx=x0+0.4,k=0;const bh=[.82,.9,.76,.88,.8,.93,.85];
         while(bx<x0+c.w-4.5){const th=2.4+(k%3)*.7,hh=Math.min(x.h-1,x.h*bh[k%7]),dd=Math.min(D-1,22);
-          addMesh(new THREE.BoxGeometry(th,hh,dd),mats.book,bx+th/2,y0+hh/2,D/2-dd/2-0.5,mats.woodEdge);bx+=th+0.15;k++;}
-        continue;
-      }
+          addMesh(new THREE.BoxGeometry(th,hh,dd),mats.book,bx+th/2,y0+hh/2,D/2-dd/2-0.5,mats.woodEdge);bx+=th+0.15;k++;}continue;}
       const L=x.L,G=geoFor(x.id,x.b,L.o,L.lid),front=L.usedD<=D?D/2:-D/2+L.usedD;
       for(let r=0;r<L.rows;r++)for(let k=0;k<L.cols;k++)for(let s=0;s<L.layers;s++){
         const cx=x0+k*(L.fw+c.gap)+L.fw/2,cz=front-r*(L.fd+c.gap)-L.fd/2,yy=y0+s*L.pitch,out=cz+L.fd/2>D/2+0.01;
-        addMesh(G.body,out?mats.warn:G.bm,cx,yy,cz);
-        if(G.lid)addMesh(G.lid,out?mats.warn:G.lm,cx,yy+x.b.h+x.b.lh/2,cz);
-      }
-    }
-    if(i===sel){const g=new THREE.BoxGeometry(c.w,x.h,D);const e=new THREE.LineSegments(new THREE.EdgesGeometry(g),mats.selEdge);
+        addMesh(G.body,out?mats.warn:G.bm,cx,yy,cz);if(G.lid)addMesh(G.lid,out?mats.warn:G.lm,cx,yy+x.b.h+x.b.lh/2,cz);}}
+    if(i===sel){const g=new THREE.BoxGeometry(c.w,x.h,D),e=new THREE.LineSegments(new THREE.EdgesGeometry(g),mats.selEdge);
       e.position.set(-W/2+t+c.w/2,y0+x.h/2,0);e.renderOrder=998;group.add(e);g.dispose();}
     if(!showDims||!x.id)return;
+    const compact=stage.clientHeight<560&&curView!=='cell',isFocus=i===focus;
+    if(compact&&!isFocus)return;
     const L=x.L,x0=-W/2+t,xR=x0+c.w,zF=D/2+0.3,front=L.usedD<=D?D/2:-D/2+L.usedD;
     if(L.per===0){makeLabel(L.failH?`第 ${i+1} 層太矮：差 ${f1(L.unitH-(L.h-c.tgap))} cm`:'放不下',new THREE.Vector3(x0+c.w/2,y0+L.h/2,zF),true);return;}
     if(L.leftH>=0.3){const xm=x0+Math.min(L.usedW,c.w)/2;dimLine(new THREE.Vector3(xm,y0+L.usedH,zF),new THREE.Vector3(xm,y0+L.h,zF),`上方剩 ${f1(L.leftH)}`,false);}
-    if(L.leftW>=0.3){const yy=y0+Math.min(L.usedH,L.h)*0.45;dimLine(new THREE.Vector3(x0+L.usedW,yy,zF),new THREE.Vector3(xR,yy,zF),`右側剩 ${f1(L.leftW)}`,false);}
-    const yb=y0+Math.min(L.usedH,L.h)*0.75,xb=x0+Math.min(L.usedW,c.w)*0.25;
+    if(L.leftW>=0.3){const yy=y0+Math.min(L.usedH,L.h)*0.35;dimLine(new THREE.Vector3(x0+L.usedW,yy,zF),new THREE.Vector3(xR,yy,zF),`右側剩 ${f1(L.leftW)}`,false);}
+    const yb=y0+Math.min(L.usedH,L.h)*0.85,xb=x0+Math.min(2.5,L.usedW*0.15);
+    if(!isFocus&&curView!=='side')return;
     if(L.protrude>0)dimLine(new THREE.Vector3(xb,yb,D/2),new THREE.Vector3(xb,yb,D/2+L.protrude),`凸出 ${f1(L.protrude)}`,true,new THREE.Vector3(xb,yb+3,D/2+L.protrude));
     else if(L.leftD>=0.3)dimLine(new THREE.Vector3(xb,yb,-D/2),new THREE.Vector3(xb,yb,front-L.usedD),`後方剩 ${f1(L.leftD)}`,false);
   });
-  scaleLabels();
-  dims={W,H,D,c,t,floors};
+  scaleLabels();dims={W,H,D,c,t,floors};
   if(firstBuild){setView('angle');firstBuild=false;}
 }
 let curView='angle';
 function setView(v){
   curView=v;document.querySelectorAll('.views button[data-view]').forEach(bt=>bt.setAttribute('aria-pressed',bt.dataset.view===v?'true':'false'));
   if(!renderer||!dims)return;
-  const{W,H,D,c,t,floors}=dims,aspect=Math.max(.5,camera.aspect||1.5);let tgt,pos;
+  const{W,H,D,c,t,floors}=dims,aspect=Math.max(.45,camera.aspect||1.5);let tgt,pos;
   if(v==='cell'){const i=sel>=0&&sel<c.hs.length?sel:0,h=c.hs[i],x=-W/2+t+c.w/2,y=floors[i]+h/2,R=Math.max(c.w/aspect,h)*2.1+D;
     tgt=new THREE.Vector3(x,y,0);pos=new THREE.Vector3(x+R*.38,y+R*.22,R);}
-  else{const R=Math.max(W/aspect,H)*1.75;tgt=new THREE.Vector3(0,H/2,0);
+  else{const R=Math.max(W/aspect,H)*2.05;tgt=new THREE.Vector3(0,H/2,0);
     if(v==='front')pos=new THREE.Vector3(0,H/2,R);else if(v==='side')pos=new THREE.Vector3(R,H/2,R*.1);else pos=new THREE.Vector3(R*.5,H*.62,R*.88);}
   controls.target.copy(tgt);camera.position.copy(pos);controls.update();
 }
-document.querySelectorAll('.views button[data-view]').forEach(bt=>bt.addEventListener('click',()=>{if(bt.dataset.view==='cell'&&sel<0){sel=0;render();}setView(bt.dataset.view);}));
+document.querySelectorAll('.views button[data-view]').forEach(bt=>bt.addEventListener('click',()=>{if(bt.dataset.view==='cell'&&sel<0)sel=0;curView=bt.dataset.view;render();setView(bt.dataset.view);}));
 $('dimToggle').addEventListener('click',()=>{showDims=!showDims;$('dimToggle').setAttribute('aria-pressed',String(showDims));render();});
 
 /* ---------- wiring ---------- */
 function render(){isLab()?renderLab():renderCombo();}
+let raf=0;function schedule(){cancelAnimationFrame(raf);raf=requestAnimationFrame(render);}
 function applyMode(){
   const lab=isLab();
-  $('labSide').hidden=!lab;$('comboSide').hidden=lab;$('labTag').hidden=!lab;$('app').classList.toggle('lab',lab);
-  $('subline').textContent=lab?'測試模式：自由輸入櫃子和盒子尺寸。測好的組合可以複製成資料，加進推薦清單。':'挑一個櫃子和收納盒的組合，看每層怎麼擺、要買幾個。尺寸單位都是公分。';
-  sel=-1;render();setView('angle');
+  $('labPanel').hidden=!lab;$('picker').hidden=lab;$('labTag').hidden=!lab;$('foot').hidden=lab;$('shop').hidden=false;
+  document.body.classList.toggle('hasbar',!lab);updateBar();
+  previewCombo=null;sel=-1;render();setView('angle');
 }
-function syncLid(){$('lidbox').hidden=!$('bhasLid').checked;}
-let raf=0;const schedule=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(render);};
-['cw','cd','ccols'].forEach(id=>$(id).addEventListener('input',()=>{$('cabPreset').value='custom';schedule();}));
-['cw','ccols'].forEach(id=>$(id).addEventListener('change',()=>setView(curView)));
-['bname','btw','btd','bbw','bbd','bh','bhasLid','blidOn','blw','bld','blh','bstack','bnest'].forEach(id=>$(id).addEventListener('input',()=>{if(id!=='bname')$('boxPreset').value='custom';syncLid();schedule();}));
+const barIO='IntersectionObserver' in window?new IntersectionObserver(es=>{shopVisible=es.some(e=>e.isIntersecting);updateBar();},{rootMargin:'0px 0px -40% 0px'}):null;
+let shopVisible=false;
+function updateBar(){$('buybar').hidden=isLab()||shopVisible;}
+if(barIO)barIO.observe($('shop'));
+$('barBtn').addEventListener('click',()=>$('shop').scrollIntoView({behavior:'smooth',block:'start'}));
+
+['cw','cd','ccols'].forEach(id=>$(id).addEventListener('input',()=>{$('cabPreset').value='custom';labChanged();}));
+['bname','btw','btd','bbw','bbd','bh','bhasLid','blidOn','blw','bld','blh','bstack','bnest'].forEach(id=>$(id).addEventListener('input',()=>{if(id!=='bname')$('boxPreset').value='custom';syncLid();labChanged();}));
 ['cover','gap','sgap','tgap','orient'].forEach(id=>$(id).addEventListener('input',schedule));
-$('cabPreset').addEventListener('change',e=>{applyCab(e.target.value);render();setView('angle');});
-$('boxPreset').addEventListener('change',e=>{applyBox(e.target.value);syncLid();render();});
+$('cabPreset').addEventListener('change',e=>{applyCab(e.target.value);labChanged(true);setView('angle');});
+$('boxPreset').addEventListener('change',e=>{const b=LABBOX()[e.target.value];if(b)applyBoxObj(b);labChanged(true);});
 window.addEventListener('hashchange',applyMode);
 
+refreshPubSelects();
+const firstCab=Object.keys(CATALOG.cabinets)[0]||'custom',firstBox=Object.keys(CATALOG.boxes)[0]||'custom';
+$('cabPreset').value=firstCab;applyCab(firstCab);$('boxPreset').value=firstBox;applyBoxObj(LABBOX()[firstBox]);
+$('cover').value=DEF.over;$('gap').value=DEF.gap;$('sgap').value=DEF.sgap;$('tgap').value=DEF.tgap;
 const ok=initGL();
 if(!ok){const d=document.createElement('div');d.className='nogl';d.textContent='這個瀏覽器無法顯示 3D 畫面，下方的擺法和購買清單仍然可以使用。';stage.appendChild(d);}
-drawFilters();drawCombos();syncLid();applyMode();
+drawFilters();drawCombos();applyMode();
 if(ok){
   const re=()=>{colorize();render();};
   const mq=window.matchMedia('(prefers-color-scheme: dark)');mq.addEventListener&&mq.addEventListener('change',re);

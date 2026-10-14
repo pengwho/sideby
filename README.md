@@ -2,34 +2,49 @@
 
 先塞塞看，再下單。網址：https://pengwho.com/sideby/
 
-看收納盒放進 IKEA BILLY、KALLAX 等櫃子時，每層怎麼擺、能不能疊、要買幾個，並附上實拍照片與購買連結。
+看收納盒放進 IKEA BILLY、KALLAX 等櫃子時，每層怎麼擺、能不能疊、要買幾個，並附上實拍照片、影片與購買連結。
+
+## 新增商品（在網站上直接做，不用改程式）
+
+1. 打開 https://pengwho.com/sideby/#lab （手機、電腦都可以）。
+2. 第一次使用時，在「發佈到網站」填 GitHub 金鑰，勾「記在這台裝置上」。
+3. **新增收納盒**：在「收納盒」欄位填尺寸，3D 會即時顯示擺法。確認後往下到「發佈到網站」：
+   - 「要儲存的盒子」選「新增一個盒子」
+   - 貼上蝦皮分潤連結，選擇照片或短影片，或貼 YouTube 連結
+   - 按「儲存盒子」
+4. **新增推薦組合**：在「推薦組合」選櫃子，每一層選要放的盒子（或放書／空著），可以先按「在 3D 預覽」，再按「儲存組合」。
+5. 大約 1 分鐘後網站就會更新。
+
+要補連結或照片時，在「要儲存的盒子」選既有的盒子，資料會自動帶入，改完再按一次儲存。
+
+### 照片與影片
+
+- 照片會自動縮到最長邊 1600px 再上傳，手機直接拍的照片就能用。
+- 短影片上限 25 MB，存在 repo 的 `media/` 資料夾。
+- **影片建議放 YouTube（特別是 Shorts）再貼連結**：不佔 repo 空間、所有手機都能播，而且 YouTube 和蝦皮有合作的購物聯盟計畫，同一支影片在 YouTube 上也能賺分潤。
+- iPhone 拍的 `.mov` 在部分 Android 手機上播不出來，這也是建議放 YouTube 的原因。
+
+### 建立 GitHub 金鑰（只要做一次）
+
+1. 打開 https://github.com/settings/personal-access-tokens/new
+2. Token name 填 `sideby`，Expiration 選一年。
+3. Repository access 選 **Only select repositories**，只勾 `pengwho/sideby`。
+4. Permissions → Repository permissions → **Contents** 設成 **Read and write**。
+5. 按 Generate token，複製 `github_pat_` 開頭的字串，貼到網站的金鑰欄位。
+
+這個金鑰只能改 sideby 這個 repo，而且只存在你自己的瀏覽器裡，不會被上傳。萬一外流，到 GitHub 設定頁刪掉重建即可。
 
 ## 檔案結構
 
 ```
-index.html     頁面與 3D 模擬（平常不用改）
-catalog.json   櫃子、收納盒、推薦組合的資料（新增商品改這裡）
-images/        實拍照片
-.nojekyll      讓 GitHub Pages 直接發佈靜態檔案
+index.html     頁面、3D 模擬、測試模式與發佈功能
+catalog.json   櫃子、收納盒、推薦組合的資料（網站的發佈功能會自動更新）
+media/         上傳的照片與影片
 ```
 
-## 新增一個收納盒
+## catalog.json 欄位（需要手動修改時參考）
 
-1. 量尺寸（單位公分，量最寬處，提把、卡扣也要算）：上緣寬深、底部寬深、盒高、蓋子寬深高。
-2. 照片放進 `images/`，檔名用英文，例如 `images/tote-01.jpg`（建議寬 1200px 以內）。
-3. 在 `catalog.json` 的 `boxes` 加一筆：
-
-```json
-"tote2": {
-  "name": "某某整理箱 L",
-  "tw": 36, "td": 25, "bw": 33, "bd": 22, "h": 13,
-  "hasLid": true, "lw": 36.5, "ld": 25.5, "lh": 1.5, "lidOn": true,
-  "stack": true, "nest": 0.8,
-  "photos": ["images/tote-01.jpg"],
-  "links": { "shopee": "https://s.shopee.tw/xxxx", "coupang": "" },
-  "verified": true
-}
-```
+收納盒 `boxes`：
 
 | 欄位 | 意思 |
 |---|---|
@@ -39,39 +54,16 @@ images/        實拍照片
 | hasLid / lw / ld / lh | 有沒有蓋子、蓋子寬 / 深 / 高 |
 | lidOn | 放進櫃子時是否蓋著 |
 | stack / nest | 可否堆疊、疊放時底部卡進下層蓋子的深度 |
-| links | 分潤連結，留空會顯示「連結待補」 |
+| links | `shopee`、`coupang` 分潤連結，留空會顯示「連結待補」 |
+| media | `{"type":"image","src":"media/x.jpg"}`、`{"type":"video","src":"media/x.mp4"}`、`{"type":"youtube","id":"影片ID"}` |
 | verified | 自己實際買來放過就填 true |
 
-## 新增一個推薦組合
-
-在 `combos` 加一筆，`levels` 由上往下列出每層放哪個盒子，`null` 代表放書或空著：
-
-```json
-{
-  "id": "billy80-tote2",
-  "title": "整理箱放滿整櫃",
-  "cabinet": "billy80",
-  "levels": ["tote2", "tote2", "tote2", "tote2", "tote2", "tote2"],
-  "note": "一句話說明這個組合適合誰。"
-}
-```
-
-層高跟預設櫃子不同時，可以加 `"hs": [26, 28, 30, 32, 34, 38]` 覆蓋。
-
-## 先在測試模式試擺
-
-網址後面加 `#lab` 進入測試模式，自由輸入尺寸。試好後按「複製組合資料」，把複製到的 `box` 和 `combo` 分別貼進 `catalog.json`，再補上名稱、照片和連結。
+推薦組合 `combos`：`levels` 由上往下列出每層放哪個盒子 id，`null` 代表放書或空著；`media` 放這組的實拍照片或影片。
 
 ## 本機預覽
-
-頁面用 `fetch` 讀 `catalog.json`，直接雙擊 index.html 會讀不到，請開本機伺服器：
 
 ```
 python3 -m http.server 8000
 ```
 
-然後打開 http://localhost:8000 。
-
-## 發佈
-
-改完 commit 並 push 到 `main`，GitHub Pages 約一分鐘後自動更新。
+打開 http://localhost:8000 。
