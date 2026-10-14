@@ -1,4 +1,6 @@
-# BoxFit 收納擺放模擬
+# 塞唄 SAIBEI
+
+先塞塞看，再下單。網址：https://pengwho.com/saibei/
 
 看收納盒放進 IKEA BILLY、KALLAX 等櫃子時，每層怎麼擺、能不能疊、要買幾個，並附上實拍照片與購買連結。
 
